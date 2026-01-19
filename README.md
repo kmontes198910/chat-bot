@@ -105,7 +105,7 @@ Add to `~/.config/Code/User/mcp.json`:
   "servers": {
     "n8n-mcp": {
       "command": "node",
-      "args": ["/absolute/path/to/n8n-chatbot/mcp-http-client.cjs"],
+      "args": ["/absolute/path/to/n8n-chatbot/helper/mcp-http-client.cjs"],
       "env": {
         "MCP_AUTH_TOKEN": "n8n-mcp-secure-token-2026"
       }

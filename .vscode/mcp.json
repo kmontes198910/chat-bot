@@ -3,7 +3,7 @@
     "n8n-mcp": {
       "command": "node",
       "args": [
-        "${workspaceFolder}/mcp-http-client.cjs"
+        "${workspaceFolder}/helper/mcp-http-client.cjs"
       ],
       "env": {
         "MCP_AUTH_TOKEN": "n8n-mcp-secure-token-2026"

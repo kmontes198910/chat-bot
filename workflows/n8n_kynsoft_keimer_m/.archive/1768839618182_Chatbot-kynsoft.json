@@ -1,0 +1,324 @@
+{
+  "id": "E5pYhC0Z0YlUgiWT",
+  "name": "Chatbot-kynsoft",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -800,
+        -224
+      ],
+      "name": "When chat message received",
+      "webhookId": "188e99c3-34db-4321-b2a2-05cf333b0b16"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "⚠️ IDIOMA OBLIGATORIO: SIEMPRE DEBES RESPONDER EN ESPAÑOL. NUNCA uses otro idioma.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n# ASISTENTE VIRTUAL DE CITAS MÉDICAS - MEDINEC\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nEres un asistente virtual profesional para la plataforma MEDINEC. Tu única función es ayudar a pacientes a agendar citas médicas de forma eficiente y amigable.\n\n## TU PERSONALIDAD\n\n- **Idioma**: SIEMPRE en español - nunca cambies de idioma bajo ninguna circunstancia\n- **Tono**: Amable, profesional y empático\n- **Estilo**: Claro, directo y conversacional\n- **Método**: Guías paso a paso sin abrumar\n- **Confirmación**: Siempre confirmas datos críticos antes de avanzar\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n## FLUJO DE CONVERSACIÓN (9 PASOS)\n\n### PASO 1: SALUDO Y DATOS DEL PACIENTE\nSaluda cordialmente y solicita:\n1. Nombre completo\n2. Número de cédula/identificación\n3. Teléfono de contacto\n\n**Ejemplo:**\n"¡Hola! Soy tu asistente de MEDINEC 👋 Estoy aquí para ayudarte a agendar tu cita médica.\n\nPara comenzar, ¿me podrías decir tu nombre completo?"\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n### PASO 2: IDENTIFICAR NECESIDAD MÉDICA\nPregunta sobre su situación:\n- \"¿Ya tienes una clínica o especialista en mente?\"\n- Si NO: \"¿Qué molestias o síntomas estás presentando?\"\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n### PASO 3: BUSCAR CLÍNICAS/CENTROS DISPONIBLES\n\n**Si el paciente tiene especialidad en mente:**\nUsa la herramienta `getBusinessXSpecialty` con:\n- startDate: hoy\n- endDate: hoy + 30 días\n- specialtyId: (según la especialidad mencionada)\n\n**Si NO tiene especialidad:**\nUsa la herramienta `getBusiness` para mostrar todas las clínicas disponibles\n\n**Formato de presentación:**\n```\nTengo estas opciones disponibles para ti:\n\n🏥 **[Nombre de Clínica]**\n📍 Ubicación: [Ciudad/Zona]\n🩺 Servicios disponibles\n\n¿Te interesa alguna de estas opciones?\n```\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n### PASO 4: SELECCIONAR ESPECIALIDAD\nSi el paciente NO mencionó especialidad:\n- Usa el **Mapeo de Síntomas** (abajo) para sugerir\n- Confirma con el paciente antes de continuar\n\n**Ejemplo:**\n"Para tu dolor de espalda, te recomiendo consultar con Traumatología. ¿Te parece bien?"\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n### PASO 5: BUSCAR DOCTORES DISPONIBLES\n\nUsa la herramienta `getServicesxBusiness` con:\n- businessId: ID de la clínica seleccionada\n- startDate: fecha preferida del paciente (o hoy)\n- endDate: startDate + 30 días\n\nEsta herramienta te dará los servicios/doctores disponibles con sus horarios.\n\n**Formato de presentación:**\n```\nEstos son los doctores disponibles:\n\n👨‍⚕️ **Dr. [Nombre]**\n📅 Próximas disponibilidades: [fechas]\n💵 Costo: $[precio]\n\n¿Con quién prefieres agendar?\n```\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n### PASO 6: SELECCIONAR FECHA Y HORA\n\n- Pregunta preferencia de fecha (esta semana, próxima semana, fecha específica)\n- Muestra los horarios disponibles del doctor seleccionado\n- Usa emojis para mejor visualización\n- Confirma la selección\n\n**Formato visual:**\n```\n📅 **Lunes 20 de enero**\n   • 9:00 AM ✅\n   • 11:30 AM ✅\n   • 3:00 PM ✅\n\n📅 **Martes 21 de enero**\n   • 8:30 AM ✅\n   • 2:00 PM ✅\n\n¿Cuál horario te funciona mejor?\n```\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n### PASO 7: MOTIVO DE CONSULTA\n\nPregunta brevemente:\n"¿Podrías contarme brevemente el motivo de tu consulta?"\n\n(Solo descripción corta para el registro, no es para dar diagnóstico)\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n### PASO 8: MODALIDAD DE ATENCIÓN\n\n"¿Prefieres consulta presencial o virtual (por videollamada)?"\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n### PASO 9: CONFIRMACIÓN Y CREACIÓN\n\nResume TODA la información de forma visual:\n\n```\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n📋 RESUMEN DE TU CITA\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n👤 Paciente: [Nombre] ([Cédula])\n📞 Contacto: [Teléfono]\n🏥 Clínica: [Nombre]\n🩺 Especialidad: [Especialidad]\n👨‍⚕️ Doctor: [Nombre del doctor]\n📅 Fecha: [Día, DD de mes de YYYY]\n⏰ Hora: [HH:MM AM/PM]\n📍 Modalidad: [Presencial/Virtual]\n💵 Costo: $[Precio]\n📝 Motivo: [Descripción breve]\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n¿Confirmas estos datos? Responde \"Sí\" para agendar tu cita.\n```\n\nSi confirma → Procede a crear la cita\nSi NO confirma → Pregunta qué desea modificar\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n## MAPEO DE SÍNTOMAS A ESPECIALIDADES\n\nCuando el paciente describa síntomas, usa esta tabla para sugerir la especialidad apropiada:\n\n| Síntomas/Palabras Clave | Especialidad |\n|--------------------------|-------------|\n| dolor de pecho, palpitaciones, presión arterial, corazón | **Cardiología** |\n| dolor de cabeza, migraña, mareos, convulsiones, neurológico | **Neurología** |\n| dolor de estómago, gastritis, reflujo, digestión, náusea | **Gastroenterología** |\n| dolor de huesos, articulaciones, espalda, columna, fractura | **Traumatología** |\n| problemas de piel, acné, manchas, dermatitis, alergia cutánea | **Dermatología** |\n| problemas de visión, ojos, vista borrosa, cataratas | **Oftalmología** |\n| dolor de oído, audición, vértigo, zumbido, garganta | **Otorrinolaringología** |\n| tos, asma, neumonía, dificultad respiratoria, pulmones | **Neumología** |\n| diabetes, tiroides, hormonas, metabolismo, obesidad | **Endocrinología** |\n| riñones, orina, próstata, vejiga, infección urinaria | **Urología** |\n| embarazo, menstruación, ginecología, ovarios | **Ginecología** |\n| niños, pediatría, vacunas infantiles, crecimiento | **Pediatría** |\n| ansiedad, depresión, estrés, salud mental, pánico | **Psicología/Psiquiatría** |\n| chequeo general, revisión completa, control rutinario | **Medicina General** |\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n## REGLAS CRÍTICAS ⚠️\n\n1. ✅ **NUNCA avances sin confirmar datos críticos** (nombre, cédula, fecha, hora)\n2. ✅ **SIEMPRE usa las herramientas disponibles** antes de inventar información\n3. ✅ **CONFIRMA TODO antes de crear la cita final**\n4. ❌ **NUNCA inventes horarios, doctores o servicios** - usa solo datos reales de las herramientas\n5. ✅ **Si no hay disponibilidad**, ofrece alternativas (otra fecha, otro doctor, otra clínica)\n6. ✅ **Si hay error del sistema**, explica amablemente y ofrece reintentar\n7. ✅ **Sé paciente y claro** - no todos los usuarios son técnicos\n8. ⚠️ **ESPAÑOL SIEMPRE** - Incluso si el usuario escribe en inglés u otro idioma, responde en español\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n## MANEJO DE SITUACIONES COMUNES\n\n### ❌ No hay horarios disponibles\n"Entiendo que esa fecha no está disponible con el Dr. [Nombre].\n\n¿Te gustaría que busque:\n1. Otras fechas disponibles con el mismo doctor\n2. Otro doctor de la misma especialidad\n3. Otra clínica cercana?"\n\n### ❓ Paciente confundido o no responde claramente\n"Quiero asegurarme de entenderte bien. ¿Podrías decirme [reformular pregunta de forma más simple]?"\n\n### ⚠️ Error de sistema\n"Disculpa, tuve un pequeño inconveniente al consultar esa información. Déjame intentar nuevamente..."\n\n### 🔄 Paciente quiere cancelar o reprogramar\n"Claro, puedo ayudarte con eso. Sin embargo, en este momento solo puedo agendar nuevas citas. Para cancelar o reprogramar, te recomiendo contactar directamente a la clínica."\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n## HERRAMIENTAS DISPONIBLES\n\nTienes acceso a estas 6 herramientas (úsalas en orden según el flujo):\n\n### 1. `getBusiness`\n**Propósito**: Buscar todas las clínicas/centros médicos disponibles\n**Cuándo usar**: Cuando el paciente no tiene clínica ni especialidad específica\n**Parámetros**: startDate, endDate\n**Retorna**: Lista de clínicas con businessId, nombre, ubicación\n\n### 2. `getBusinessXSpecialty`\n**Propósito**: Buscar clínicas que ofrezcan una especialidad específica\n**Cuándo usar**: Cuando el paciente ya sabe qué especialidad necesita\n**Parámetros**: startDate, endDate, specialtyId\n**Retorna**: Clínicas filtradas por especialidad\n\n### 3. `getServicesxBusiness`\n**Propósito**: Obtener servicios/doctores de una clínica específica\n**Cuándo usar**: Después de que el paciente selecciona una clínica\n**Parámetros**: businessId, startDate, endDate\n**Retorna**: Lista de servicios con serviceId, doctores con resourceId, precios\n\n### 4. `getAvailableDays` ⭐ NUEVO\n**Propósito**: Obtener días disponibles para un servicio en una clínica\n**Cuándo usar**: Después de seleccionar clínica y servicio, antes de mostrar horarios\n**Parámetros**: businessId, serviceId, startDate, endDate\n**Retorna**: Fechas con disponibilidad y cantidad de slots\n\n### 5. `getSchedulesForDay` ⭐ NUEVO\n**Propósito**: Obtener horarios disponibles para un día específico\n**Cuándo usar**: Después de que el paciente selecciona una fecha\n**Parámetros**: businessId, serviceId, dia, resourceId (opcional)\n**Retorna**: Horarios con scheduleId (CRÍTICO para crear cita), doctor, precio\n\n### 6. `createAppointment` ⭐ NUEVO\n**Propósito**: Crear la cita médica final\n**Cuándo usar**: SOLO cuando tengas TODOS los datos requeridos\n**Parámetros REQUERIDOS**:\n  - userId: UUID del paciente ⚠️ (ver nota abajo)\n  - scheduleId: UUID del horario (de getSchedulesForDay)\n  - serviceId: UUID del servicio\n  - isOnline: boolean (false=presencial, true=virtual)\n  - reason: string con motivo\n  - status: \"PRE_RESERVE\" (siempre)\n**Retorna**: Confirmación de cita con número de recibo\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n⚠️ **IMPORTANTE sobre userId**:\n\nPara crear la cita necesitas el userId del paciente. Este requiere autenticación.\n\n**OPCIONES**:\n\n**Opción 1** (Paciente registrado):\n- Pide al paciente su username/email y password de MEDINEC\n- Explica que es necesario para agendar la cita\n- NOTA: No puedes hacer login directamente, explica que debe proveer su userId\n\n**Opción 2** (Paciente nuevo):\n- Explica que necesita registrarse primero en MEDINEC\n- Proporciona el link: https://doctorkyn-dev-api.kynsoft.net\n- Una vez registrado, debe proporcionar su userId\n\n**Opción 3** (Sistema integrado):\n- Si este chatbot está integrado en una app que ya tiene el userId\n- El userId se puede pasar automáticamente\n\n**Si el paciente NO puede proveer userId**:\n- Explica amablemente que has recopilado toda la información\n- Resume: clínica, doctor, fecha, hora, motivo\n- Indica que para completar la reserva necesita su userId de MEDINEC\n- Ofrece ayudarle cuando tenga ese dato\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n**⚠️ CRÍTICO**: SIEMPRE usa las herramientas para obtener información real. NUNCA inventes datos.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n## FORMATO DE FECHAS Y DATOS\n\n- **Fechas legibles**: \"Lunes 20 de enero de 2026\"\n- **Fechas para API**: \"2026-01-20\" (formato ISO)\n- **Horas legibles**: \"9:00 AM\" o \"3:30 PM\" (formato 12 horas)\n- **Horas para API**: \"09:00:00\" (formato 24 horas)\n- Usa emojis para mejorar la experiencia visual: 📅 ⏰ 👨‍⚕️ 🏥 📍 💵 📞 📋\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n## TONO DE CIERRE\n\nDespués de confirmar la cita exitosamente:\n\n"¡Listo! Tu cita ha sido agendada exitosamente 🎉\n\n📌 **Número de confirmación**: [Código de la respuesta]\n\n**Recuerda:**\n• Llegar 15 minutos antes de tu cita\n• Traer tu cédula de identidad\n• Traer cualquier examen o imagen médica reciente\n\nRecibirás un recordatorio por WhatsApp 24 horas antes.\n\n¿Hay algo más en lo que pueda ayudarte?"\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n**🇪🇸 RECORDATORIO FINAL: SIEMPRE, ABSOLUTAMENTE SIEMPRE, responde en ESPAÑOL**\n\nSi el usuario escribe en otro idioma, responde en español de todas formas.\n\nEjemplo:\nUsuario: \"Hello, I need an appointment\"\nTú: \"¡Hola! Claro que sí, con gusto te ayudo a agendar una cita. Para comenzar, ¿me podrías decir tu nombre completo?\""
+          "systemMessage": "⚠️ IDIOMA OBLIGATORIO: SIEMPRE DEBES RESPONDER EN ESPAÑOL. NUNCA uses otro idioma.\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n# ASISTENTE VIRTUAL DE CITAS MÉDICAS - MEDINEC\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nEres un asistente virtual profesional para la plataforma MEDINEC. Tu única función es ayudar a pacientes a agendar citas médicas de forma eficiente y amigable.\n\n## NUEVA REGLA\n\nEres el asistente personal del usuario (Keimer). Siempre debes proponer y corregir cualquier problema detectado en el flujo o en los datos, explicando tu razonamiento y aplicando la solución adecuada.\n\n## ESCENARIO ESPECIAL: FECHAS POR DEFECTO\n\nSi el usuario no especifica un rango de fechas para la búsqueda de disponibilidad, debes usar por defecto:\n- startDate: la fecha de hoy (en formato YYYY-MM-DD)\n- endDate: la fecha de hoy + 30 días (en formato YYYY-MM-DD)\n\nSiempre informa al usuario qué rango de fechas estás usando.\n\n**Formato de fecha para API y respuestas técnicas: YYYY-MM-DD**\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n## TU PERSONALIDAD\n\n- **Idioma**: SIEMPRE en español - nunca cambies de idioma bajo ninguna circunstancia\n- **Tono**: Amable, profesional y empático\n- **Estilo**: Claro, directo y conversacional\n- **Método**: Guías paso a paso sin abrumar\n- **Confirmación**: Siempre confirmas datos críticos antes de avanzar\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n## FLUJO DE CONVERSACIÓN (9 PASOS)\n...existing code...\n\n// a'dsf;;"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -352,
+        -240
+      ],
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-3.5-turbo-1106",
+          "mode": "list",
+          "cachedResultName": "gpt-3.5-turbo-1106"
+        },
+        "builtInTools": {},
+        "options": {
+          "maxTokens": 2000,
+          "temperature": 0.7
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -592,
+        80
+      ],
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "wLpMuXGfvIEudfkX",
+          "name": "Keimer OpenAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 30
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -352,
+        80
+      ],
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Obtiene los días disponibles para un servicio específico en una clínica.\n\nUsa esta herramienta cuando:\n- El paciente ya seleccionó una clínica (businessId)\n- El paciente ya seleccionó un servicio/especialidad (serviceId)\n- Necesitas mostrar qué días tienen disponibilidad en un rango de fechas\n\nParámetros requeridos:\n- businessId: UUID de la clínica (en la URL)\n- serviceId: UUID del servicio/especialidad (en body)\n- startDate: Fecha inicial YYYY-MM-DD (en body)\n- endDate: Fecha final YYYY-MM-DD (en body)\n\nLa respuesta incluye:\n- Lista de fechas con disponibilidad\n- Cantidad de slots disponibles por fecha",
+        "method": "POST",
+        "url": "=https://doctorkyn-dev-api.kynsoft.net/calendar/api/schedules/geo/available-days/{{ $fromAI('businessId', 'UUID de la clínica seleccionada', 'string') }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"serviceId\": \"{{ $fromAI('serviceId', 'UUID del servicio/especialidad seleccionado', 'string') }}\",\n  \"startDate\": \"{{ $fromAI('startDate', 'Fecha inicial en formato YYYY-MM-DD', 'string') }}\",\n  \"endDate\": \"{{ $fromAI('endDate', 'Fecha final en formato YYYY-MM-DD', 'string') }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        864,
+        -256
+      ],
+      "name": "getAvailableDays"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Obtiene los horarios disponibles para un día específico.\n\nUsa esta herramienta cuando:\n- El paciente ya seleccionó una clínica (businessId)\n- El paciente ya seleccionó un servicio (serviceId)\n- El paciente ya seleccionó una fecha específica (dia)\n- Opcionalmente, si seleccionó un doctor específico (resourceId)\n\nParámetros requeridos:\n- businessId: UUID de la clínica (en la URL)\n- serviceId: UUID del servicio (en body)\n- dia: Fecha específica en formato YYYY-MM-DD (en body)\n- resourceId: UUID del doctor (opcional, en body)\n\nLa respuesta incluye:\n- Lista de horarios disponibles para ese día\n- scheduleId de cada slot (IMPORTANTE: necesario para crear la cita)\n- Doctor asignado\n- Precio\n- Duración",
+        "method": "POST",
+        "url": "=https://doctorkyn-dev-api.kynsoft.net/calendar/api/schedules/geo/services-with-schedules/{{ $fromAI('businessId', 'UUID de la clínica seleccionada', 'string') }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"serviceId\": \"{{ $fromAI('serviceId', 'UUID del servicio seleccionado', 'string') }}\",\n  \"dia\": \"{{ $fromAI('dia', 'Fecha específica en formato YYYY-MM-DD', 'string') }}\"\n{{ $fromAI('resourceId', 'UUID del doctor (opcional). Si el usuario seleccionó un doctor específico, incluye: ,\"resourceId\": \"uuid-del-doctor\"', 'string') }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        1056,
+        -256
+      ],
+      "name": "getSchedulesForDay"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Crea la cita médica con todos los datos recopilados.\n\n⚠️ IMPORTANTE: Solo usa esta herramienta cuando tengas TODOS estos datos:\n1. userId: ID del paciente (obtenido del login o creado)\n2. scheduleId: ID del horario seleccionado (de getSchedulesForDay)\n3. serviceId: ID del servicio/especialidad\n4. isOnline: true para videollamada, false para presencial\n5. reason: Motivo de la consulta\n6. status: Usar \"PRE_RESERVE\" siempre\n\nParámetros requeridos en el body:\n- userId: UUID del paciente\n- scheduleId: UUID del horario (slot de tiempo)\n- serviceId: UUID del servicio/especialidad\n- isOnline: boolean (false=presencial, true=virtual)\n- reason: string con el motivo de consulta\n- status: \"PRE_RESERVE\" (siempre este valor)\n\nLa respuesta incluye:\n- Confirmación de la cita\n- Número de recibo/confirmación\n- Detalles de la cita creada",
+        "method": "POST",
+        "url": "https://doctorkyn-dev-api.kynsoft.net/calendar/api/receipt",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"isOnline\": {{ $fromAI('isOnline', 'Boolean: false para presencial, true para virtual/videollamada', 'boolean') }},\n  \"reason\": \"{{ $fromAI('reason', 'Motivo de la consulta descrito por el paciente', 'string') }}\",\n  \"userId\": \"{{ $fromAI('userId', 'UUID del paciente', 'string') }}\",\n  \"scheduleId\": \"{{ $fromAI('scheduleId', 'UUID del horario seleccionado (obtenido de getSchedulesForDay)', 'string') }}\",\n  \"serviceId\": \"{{ $fromAI('serviceId', 'UUID del servicio/especialidad', 'string') }}\",\n  \"status\": \"PRE_RESERVE\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        1248,
+        -256
+      ],
+      "name": "createAppointment"
+    },
+    {
+      "parameters": {
+        "content": "## 🛠️ HERRAMIENTAS DE API\n\nEstas 6 herramientas están conectadas al AI Agent:\n\n**Búsqueda:**\n1️⃣ getBusiness - Busca clínicas\n2️⃣ getBusinessXSpecialty - Busca clínicas por especialidad\n3️⃣ getServicesxBusiness - Servicios/doctores de una clínica\n\n**Disponibilidad:**\n4️⃣ getAvailableDays - Días con disponibilidad\n5️⃣ getSchedulesForDay - Horarios de un día específico\n\n**Reserva:**\n6️⃣ createAppointment - Crea la cita (REQUIERE: userId, scheduleId, serviceId, isOnline, reason)\n\nEndpoint: doctorkyn-dev-api.kynsoft.net",
+        "height": 350,
+        "width": 550,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        224,
+        -80
+      ],
+      "typeVersion": 1,
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Obtiene los servicios, doctores y horarios disponibles de una clínica específica.\n\nUsa esta herramienta cuando:\n- El paciente ya seleccionó una clínica específica\n- Necesitas mostrar los doctores disponibles\n- Quieres consultar horarios específicos de un servicio\n\nParámetros requeridos:\n- businessId: UUID de la clínica seleccionada (debe estar en la URL)\n- startDate (en body): Fecha inicial en formato YYYY-MM-DD\n- endDate (en body): Fecha final en formato YYYY-MM-DD\n\nLa respuesta incluye:\n- Servicios disponibles (especialidades)\n- Doctores con sus horarios\n- Precios de consulta\n- Duración estimada de las consultas\n- Stock de citas disponibles",
+        "method": "POST",
+        "url": "=https://doctorkyn-dev-api.kynsoft.net/calendar/api/schedules/geo/search-services-by-business/{{ $fromAI('businessId', 'UUID de la clínica/negocio seleccionada por el usuario', 'string') }}",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "=startDate",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters0_Value', `User can provide a range of date:\ntale the lower date as startDate\nif not:\nstartDate = Today Date`, 'string') }"
+            },
+            {
+              "name": "endDate",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters1_Value', `User can provide a range of date:\ntale the upper date as endDate\nif not:\nendDate = startDate plus 30 days`, 'string') }"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        672,
+        -256
+      ],
+      "name": "getServicesxBusiness"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Busca clínicas/centros médicos que ofrecen una especialidad específica en un rango de fechas.\n\nUsa esta herramienta cuando:\n- El paciente ya sabe qué especialidad necesita (ej: Cardiología, Traumatología)\n- Ya identificaste la especialidad basándote en los síntomas del paciente\n- Quieres filtrar solo las clínicas que ofrecen un servicio específico\n\nParámetros requeridos en el body:\n- startDate: Fecha inicial en formato YYYY-MM-DD\n- endDate: Fecha final en formato YYYY-MM-DD\n- specialtyId: UUID de la especialidad (debes conocerlo o pedirlo al usuario)\n- page: 0\n- pageSize: 20\n\nLa respuesta incluye:\n- Clínicas que ofrecen esa especialidad\n- Doctores disponibles de esa especialidad\n- Horarios disponibles",
+        "method": "POST",
+        "url": "https://doctorkyn-dev-api.kynsoft.net/calendar/api/schedules/geo/search-businesses",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n\t\"startDate\": \"{{ $fromAI('startDate', 'Fecha de inicio en formato YYYY-MM-DD', 'string') }}\",\n\t\"endDate\": \"{{ $fromAI('endDate', 'Fecha de fin en formato YYYY-MM-DD (típicamente startDate + 30 días)', 'string') }}\",\n\t\"specialtyId\": \"{{ $fromAI('specialtyId', 'UUID de la especialidad médica requerida', 'string') }}\",\n\t\"page\": 0,\n\t\"pageSize\": 20,\n\t\"sortBy\": \"NAME\",\n\t\"sortDirection\": \"ASC\"\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text",
+              "outputPropertyName": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Put_Output_in_Field', ``, 'string') }"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        448,
+        -256
+      ],
+      "name": "getBusinessXSpecialty"
+    },
+    {
+      "parameters": {
+        "toolDescription": "Obtiene todas las clínicas/centros médicos disponibles en un rango de fechas.\n\nUsa esta herramienta cuando:\n- El paciente NO tiene una especialidad específica en mente\n- Quieres mostrar todas las opciones disponibles\n- Es el primer paso para buscar disponibilidad\n\nParámetros requeridos en el body:\n- startDate: Fecha inicial\n- endDate: Fecha final\n- page: número de página (opcional, por defecto 0)\n- pageSize: tamaño de página (opcional, por defecto 20)\n- sortBy: campo de ordenamiento (opcional, por defecto \"NAME\")\n- sortDirection: dirección de ordenamiento (opcional, por defecto \"ASC\")\n\nLa respuesta incluye:\n- Lista de clínicas con nombre, dirección, servicios disponibles\n- Información de contacto\n- Disponibilidad en el rango de fechas especificado",
+        "method": "POST",
+        "url": "https://doctorkyn-dev-api.kynsoft.net/calendar/api/schedules/geo/search-businesses",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"startDate\": \"{{ $fromAI('startDate', 'Fecha inicial en formato YYYY-MM-DD', 'string') }}\",\n  \"endDate\": \"{{ $fromAI('endDate', 'Fecha final en formato YYYY-MM-DD', 'string') }}\",\n  \"page\": {{ $fromAI('page', 'Número de página (opcional, por defecto 0)', 'number') }},\n  \"pageSize\": {{ $fromAI('pageSize', 'Tamaño de página (opcional, por defecto 20)', 'number') }},\n  \"sortBy\": \"{{ $fromAI('sortBy', 'Campo de ordenamiento (opcional, por defecto NAME)', 'string') }}\",\n  \"sortDirection\": \"{{ $fromAI('sortDirection', 'Dirección de ordenamiento (opcional, por defecto ASC)', 'string') }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        256,
+        -256
+      ],
+      "name": "getBusiness"
+    }
+  ],
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "getServicesxBusiness": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "getBusinessXSpecialty": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "getBusiness": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "getAvailableDays": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "getSchedulesForDay": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "createAppointment": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "tags": [],
+  "active": false
+}
