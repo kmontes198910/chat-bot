@@ -1,0 +1,71 @@
+# Environment Variables - NEVER COMMIT
+.env
+.env.local
+.env.*.local
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Logs
+logs/
+*.log
+
+# Docker
+docker-compose.override.yml
+.docker/
+
+# SQLite Database (n8n-mcp persistence)
+*.db
+*.sqlite
+*.sqlite3
+data/
+
+# IDE / Editor
+.vscode/*
+!.vscode/mcp.json
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS
+Thumbs.db
+.Spotlight-V100
+.Trashes
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+.temp/
+
+# MCP Session data
+session-data/
+*.session
+
+# Credentials and secrets
+*.key
+*.pem
+*.p12
+credentials.json
+secrets/
+
+# Build artifacts
+dist/
+build/
+out/
+
+# Test coverage
+coverage/
+.nyc_output/
+
+# Claude Code
+.claude/
