@@ -1,0 +1,417 @@
+{
+  "id": "mfHwf9fuhPncu4d7d5QJv",
+  "name": "Scrap info from any Website",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Website Scraper",
+        "formDescription": "Enter a website URL to scrape and create an encyclopedia",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Website URL"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Website Form Submission",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.3,
+      "position": [
+        352,
+        -176
+      ],
+      "webhookId": "f90f1398-044b-4062-b019-fdb08826a577"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "links",
+        "options": {}
+      },
+      "name": "Split URLs",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        816,
+        -176
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "id-1",
+              "leftValue": "={{ $json.url }}",
+              "rightValue": "gallery",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "id-2",
+              "leftValue": "={{ $json.url }}",
+              "rightValue": "media",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "id-3",
+              "leftValue": "={{ $json.url }}",
+              "rightValue": "uploads",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "Filter Media URLs",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        1040,
+        -176
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "id-1",
+              "leftValue": "={{ $json.success }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "Filter Errors",
+      "type": "n8n-nodes-base.filter",
+      "typeVersion": 2.2,
+      "position": [
+        816,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "fieldsToAggregate": {
+          "fieldToAggregate": [
+            {
+              "fieldToAggregate": "data",
+              "renameField": true,
+              "outputFieldName": "allContents"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Aggregate Contents",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1040,
+        48
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "eedeef54-37aa-40a6-ad3c-a79471a46e45",
+              "name": "scraped_website_url",
+              "value": "=website: {{ $('Website Form Submission').item.json['Website URL'] }}\n\n---\n\n{{ $json.allContents.map(item => {\n let result = '';\n  result += 'Page Title: ' + item.metadata.title + '\\n';\n  result += 'Page Description: ' + item.metadata.description + '\\n';\n  result += 'Page URL: ' + item.metadata.url + '\\n\\n';\n\n  result += item.markdown;\n\nreturn result;\n}).join('\\n------\\n') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Map Encyclopedia Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        608,
+        256
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "Scraping",
+        "operation": "map"
+      },
+      "type": "@mendable/n8n-nodes-preview-firecrawl.firecrawl",
+      "typeVersion": 1,
+      "position": [
+        592,
+        -176
+      ],
+      "name": "Map Website",
+      "credentials": {}
+    },
+    {
+      "parameters": {
+        "resource": "Scraping",
+        "operation": "scrape"
+      },
+      "type": "@mendable/n8n-nodes-preview-firecrawl.firecrawl",
+      "typeVersion": 1,
+      "position": [
+        608,
+        48
+      ],
+      "name": "Scrape Content",
+      "executeOnce": false,
+      "retryOnFail": true,
+      "alwaysOutputData": true,
+      "credentials": {},
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.scraped_website_url }}",
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=Prompt to Markdown\n\nEres un redactor técnico experto especializado en la creación de enciclopedias empresariales completas y bien estructuradas a partir de contenido web extraído.\n\n## Tu misión\n\nTransformar el contenido web sin procesar en una enciclopedia clara, organizada y de fácil búsqueda que servirá como base de conocimientos para los agentes de IA que responden a las preguntas de los clientes.\n\n## Formato de entrada\n\nRecibirás:\n\n- URL del sitio web\n\n- Varias páginas con contenido extraído, cada una con:\n\n- Título de la página\n\n- Descripción de la página\n\n- URL de la página\n\n- Contenido Markdown completo de esa página\n\n## Formato de salida\n\nCrea una enciclopedia bien estructurada en formato Markdown con las siguientes características:\n\n### Requisitos de estructura\n\n1. **Jerarquía y organización**\n\n- Comienza con un encabezado principal que indique el nombre de la empresa/sitio web.\n\n- Organiza el contenido por categorías lógicas (p. ej., Servicios, Productos, Habitaciones, Comodidades, Precios, Ubicación, Contacto).\n\n- Utiliza encabezados H2 claros (##) para las secciones principales.\n\n- Utiliza encabezados H3 (###) para las subsecciones.\n\n- Utiliza encabezados H4 (####) para elementos o detalles específicos.\n\n2. **Procesamiento de contenido**\n\n- **Consolida la información duplicada**: Si la misma información aparece en varias páginas, sintetízala en una sola entrada autorizada.\n\n- **Preserva la especificidad**: Mantén detalles exactos como precios, horarios, nombres de habitaciones, elementos del menú, etc. Direcciones, números de teléfono\n\n- **Eliminar elementos de navegación**: Quitar encabezados, pies de página, menús de navegación y elementos repetitivos del sitio.\n\n- **Mantener el contexto**: Conservar suficiente contexto para que cada sección se entienda de forma independiente.\n\n- **Extraer información clave**: Resaltar detalles cruciales como horarios, información de contacto, precios y especificaciones.\n\n3. **Estándares de formato**\n\n- Usar **negrita** para términos importantes, nombres e información clave.\n\n- Usar viñetas para listas de características, servicios u opciones.\n\n- Usar tablas para datos estructurados (niveles de precios, horarios, comparaciones).\n\n- Incluir URL relevantes solo cuando aporten valor adicional (enlaces de reserva, páginas de recursos específicos).\n\n- Mantener los párrafos concisos (máximo 2-4 oraciones).\n\n4. **Arquitectura de la información**\n\n- Agrupar la información relacionada.\n\n- Crear jerarquías de información claras.\n\n- Usar convenciones de nomenclatura consistentes.\n\n- Agregar referencias cruzadas cuando sea relevante (p. ej., \"Ver también: Opciones gastronómicas\").\n\n### Estándares de calidad del contenido\n\n1. **Claridad**\n\n- Escribir En un lenguaje claro y profesional.\n\n- Defina los términos específicos del sector la primera vez que los utilice.\n\n- Utilice la voz activa.\n\n- Evite la jerga de marketing. 1. Enfoque en la información objetiva\n\n2. **Integridad**\n\n- Incluir toda la información relevante del negocio\n\n- No omitir detalles, aunque parezcan menores\n\n- Conservar nombres, números y especificaciones concretas\n\n- Mantener la información estacional o con fecha de caducidad con el contexto adecuado\n\n3. **Precisión**\n\n- Mantener la precisión de los datos de la fuente original\n\n- No inferir ni asumir información que no esté presente en la fuente\n\n- Conservar la terminología exacta utilizada por la empresa\n\n- Si la información es contradictoria entre páginas, incluir ambas con el contexto de la fuente\n\n4. **Facilidad de búsqueda**\n\n- Utilizar encabezados descriptivos que coincidan con las posibles preguntas de los clientes\n\n- Incluir sinónimos comunes y frases alternativas\n\n- Añadir palabras clave específicas de la ubicación cuando sea relevante\n\n- Estructurar el contenido para que los agentes de IA puedan encontrar rápidamente las secciones relevantes\n\n### Ejemplo de estructura\n\n```markdown\n# [Nombre de la empresa] - Enciclopedia completa\n\n## Descripción general\n[Breve resumen de la empresa, la ubicación y los principales servicios]\n\n## Ubicación y contacto\n### Dirección\n[Dirección completa con puntos de referencia si los hay] [mencionado]\n\n### Información de contacto\n- **Teléfono**: [número]\n\n- **Correo electrónico**: [correo electrónico]\n\n- **Sitio web**: [url]\n\n### Horario de atención\n[Horario de atención, horarios especiales]\n\n## [Categoría principal 1 - ej., Habitaciones y alojamiento]\n\n### [Elemento específico 1]\n\n**Descripción**: [Descripción clara]\n\n**Características**:\n\n- [Característica 1]\n\n- [Característica 2]\n\n**Precios**: [Información de precios, si está disponible]\n\n**Capacidad**: [Capacidad, si corresponde]\n\n### [Elemento específico 2]\n\n[Siga la misma estructura]\n\n## [Categoría principal 2 - ej., Opciones gastronómicas]\n\n### [Nombre del restaurante/servicio]\n\n**Tipo**: [Tipo de cocina, estilo de servicio]\n\n**Ubicación**: [Dónde en la propiedad]\n\n**Horario**: [Horario de atención] [Horario]\n\n**Aspectos destacados del menú**:\n\n- [Artículo 1]: [Descripción y precio]\n\n- [Artículo 2]: [Descripción y precio]\n\n## [Categoría principal 3 - ej., Servicios e instalaciones]\n\n### [Categoría de servicio]\n\n- **[Servicio específico]**: [Descripción, disponibilidad, precio]\n\n## Políticas e información\n\n### Reservas\n[Políticas relevantes]\n\n### Transporte y acceso\n[Cómo llegar, estacionamiento, servicio de transporte]\n\n### Ofertas especiales\n[Paquetes, promociones, ofertas de temporada]\n\n```\n\n## Directrices de elaboración\n\n1. **Lea todo el material de origen primero** antes de crear la enciclopedia.\n2. **Identifique los temas y categorías principales** en todas las páginas.\n3. **Consolide la información redundante**: no repita los mismos detalles varias veces.\n4. **Priorice la información para el cliente** sobre los detalles internos/técnicos.\n5. **Mantenga la atribución de la fuente** solo para citas textuales o afirmaciones específicas\n6. **Conserve los nombres propios** tal como aparecen (nombres de habitaciones, platos del menú, nombres de lugares).\n7. **Extraiga información útil** que ayude a responder a las preguntas: ¿Qué? ¿Dónde? ¿Cuándo? ¿Cuánto? ¿Cómo?\n\n## Qué excluir\n\n- Lenguaje de marketing genérico sin información específica\n\n- Llamadas a la acción repetitivas (\"¡Reserva ahora!\", \"¡Contáctanos hoy!\")\n\n- Elementos de navegación del sitio web\n- Avisos legales (a menos que sean específicamente relevantes para los servicios)\n\n- Avisos de cookies y políticas de privacidad\n\n- Enlaces a redes sociales (a menos que formen parte de la información de contacto)\n\n- Contenido roto o de relleno\n\n- Texto puramente decorativo\n\n## Control de calidad final\n\nAntes de la salida, verifique:\n\n- [ ] Todas las secciones principales del sitio web están representadas\n- [ ] La información está organizada de forma lógica\n\n- [ ] Se ha consolidado el contenido duplicado\n\n- [ ] Se conservan los detalles específicos (precios, horarios, nombres)\n\n- [ ] Los encabezados son descriptivos y fáciles de leer\n\n- [ ] El contenido fluye de forma natural y es fácil de navegar\n\n- [ ] Un agente de IA podría encontrar rápidamente respuestas a las preguntas frecuentes\n\n## Instrucciones de salida\n\nProporcione SOLO el contenido de la enciclopedia formateado en Markdown. No incluya:\n\n- Metacomentarios sobre el proceso\n- Explicaciones de lo que hizo\n- Advertencias o exenciones de responsabilidad\n\n- URL de origen, a menos que aporten valor al contenido\n\nComience la enciclopedia inmediatamente con el encabezado del nombre de la empresa."
+            }
+          ]
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.7,
+      "position": [
+        832,
+        288
+      ],
+      "name": "Structure Data Formatter"
+    },
+    {
+      "parameters": {
+        "content": "## Website Scraper and Encyclopedia",
+        "height": 848,
+        "width": 1216,
+        "color": 5
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        304,
+        -256
+      ],
+      "typeVersion": 1,
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "list",
+          "value": "gpt-4.1-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        832,
+        464
+      ],
+      "name": "OpenAI Chat Model"
+    },
+    {
+      "parameters": {
+        "content": "Prompt to Markdown\n\nEres un redactor técnico experto especializado en la creación de enciclopedias empresariales completas y bien estructuradas a partir de contenido web extraído.\n\n## Tu misión\n\nTransformar el contenido web sin procesar en una enciclopedia clara, organizada y de fácil búsqueda que servirá como base de conocimientos para los agentes de IA que responden a las preguntas de los clientes.\n\n## Formato de entrada\n\nRecibirás:\n\n- URL del sitio web\n\n- Varias páginas con contenido extraído, cada una con:\n\n- Título de la página\n\n- Descripción de la página\n\n- URL de la página\n\n- Contenido Markdown completo de esa página\n\n## Formato de salida\n\nCrea una enciclopedia bien estructurada en formato Markdown con las siguientes características:\n\n### Requisitos de estructura\n\n1. **Jerarquía y organización**\n\n- Comienza con un encabezado principal que indique el nombre de la empresa/sitio web.\n\n- Organiza el contenido por categorías lógicas (p. ej., Servicios, Productos, Habitaciones, Comodidades, Precios, Ubicación, Contacto).\n\n- Utiliza encabezados H2 claros (##) para las secciones principales.\n\n- Utiliza encabezados H3 (###) para las subsecciones.\n\n- Utiliza encabezados H4 (####) para elementos o detalles específicos.\n\n2. **Procesamiento de contenido**\n\n- **Consolida la información duplicada**: Si la misma información aparece en varias páginas, sintetízala en una sola entrada autorizada.\n\n- **Preserva la especificidad**: Mantén detalles exactos como precios, horarios, nombres de habitaciones, elementos del menú, etc. Direcciones, números de teléfono\n\n- **Eliminar elementos de navegación**: Quitar encabezados, pies de página, menús de navegación y elementos repetitivos del sitio.\n\n- **Mantener el contexto**: Conservar suficiente contexto para que cada sección se entienda de forma independiente.\n\n- **Extraer información clave**: Resaltar detalles cruciales como horarios, información de contacto, precios y especificaciones.\n\n3. **Estándares de formato**\n\n- Usar **negrita** para términos importantes, nombres e información clave.\n\n- Usar viñetas para listas de características, servicios u opciones.\n\n- Usar tablas para datos estructurados (niveles de precios, horarios, comparaciones).\n\n- Incluir URL relevantes solo cuando aporten valor adicional (enlaces de reserva, páginas de recursos específicos).\n\n- Mantener los párrafos concisos (máximo 2-4 oraciones).\n\n4. **Arquitectura de la información**\n\n- Agrupar la información relacionada.\n\n- Crear jerarquías de información claras.\n\n- Usar convenciones de nomenclatura consistentes.\n\n- Agregar referencias cruzadas cuando sea relevante (p. ej., \"Ver también: Opciones gastronómicas\").\n\n### Estándares de calidad del contenido\n\n1. **Claridad**\n\n- Escribir En un lenguaje claro y profesional.\n\n- Defina los términos específicos del sector la primera vez que los utilice.\n\n- Utilice la voz activa.\n\n- Evite la jerga de marketing. 1. Enfoque en la información objetiva\n\n2. **Integridad**\n\n- Incluir toda la información relevante del negocio\n\n- No omitir detalles, aunque parezcan menores\n\n- Conservar nombres, números y especificaciones concretas\n\n- Mantener la información estacional o con fecha de caducidad con el contexto adecuado\n\n3. **Precisión**\n\n- Mantener la precisión de los datos de la fuente original\n\n- No inferir ni asumir información que no esté presente en la fuente\n\n- Conservar la terminología exacta utilizada por la empresa\n\n- Si la información es contradictoria entre páginas, incluir ambas con el contexto de la fuente\n\n4. **Facilidad de búsqueda**\n\n- Utilizar encabezados descriptivos que coincidan con las posibles preguntas de los clientes\n\n- Incluir sinónimos comunes y frases alternativas\n\n- Añadir palabras clave específicas de la ubicación cuando sea relevante\n\n- Estructurar el contenido para que los agentes de IA puedan encontrar rápidamente las secciones relevantes\n\n### Ejemplo de estructura\n\n```markdown\n# [Nombre de la empresa] - Enciclopedia completa\n\n## Descripción general\n[Breve resumen de la empresa, la ubicación y los principales servicios]\n\n## Ubicación y contacto\n### Dirección\n[Dirección completa con puntos de referencia si los hay] [mencionado]\n\n### Información de contacto\n- **Teléfono**: [número]\n\n- **Correo electrónico**: [correo electrónico]\n\n- **Sitio web**: [url]\n\n### Horario de atención\n[Horario de atención, horarios especiales]\n\n## [Categoría principal 1 - ej., Habitaciones y alojamiento]\n\n### [Elemento específico 1]\n\n**Descripción**: [Descripción clara]\n\n**Características**:\n\n- [Característica 1]\n\n- [Característica 2]\n\n**Precios**: [Información de precios, si está disponible]\n\n**Capacidad**: [Capacidad, si corresponde]\n\n### [Elemento específico 2]\n\n[Siga la misma estructura]\n\n## [Categoría principal 2 - ej., Opciones gastronómicas]\n\n### [Nombre del restaurante/servicio]\n\n**Tipo**: [Tipo de cocina, estilo de servicio]\n\n**Ubicación**: [Dónde en la propiedad]\n\n**Horario**: [Horario de atención] [Horario]\n\n**Aspectos destacados del menú**:\n\n- [Artículo 1]: [Descripción y precio]\n\n- [Artículo 2]: [Descripción y precio]\n\n## [Categoría principal 3 - ej., Servicios e instalaciones]\n\n### [Categoría de servicio]\n\n- **[Servicio específico]**: [Descripción, disponibilidad, precio]\n\n## Políticas e información\n\n### Reservas\n[Políticas relevantes]\n\n### Transporte y acceso\n[Cómo llegar, estacionamiento, servicio de transporte]\n\n### Ofertas especiales\n[Paquetes, promociones, ofertas de temporada]\n\n```\n\n## Directrices de elaboración\n\n1. **Lea todo el material de origen primero** antes de crear la enciclopedia.\n2. **Identifique los temas y categorías principales** en todas las páginas.\n3. **Consolide la información redundante**: no repita los mismos detalles varias veces.\n4. **Priorice la información para el cliente** sobre los detalles internos/técnicos.\n5. **Mantenga la atribución de la fuente** solo para citas textuales o afirmaciones específicas\n6. **Conserve los nombres propios** tal como aparecen (nombres de habitaciones, platos del menú, nombres de lugares).\n7. **Extraiga información útil** que ayude a responder a las preguntas: ¿Qué? ¿Dónde? ¿Cuándo? ¿Cuánto? ¿Cómo?\n\n## Qué excluir\n\n- Lenguaje de marketing genérico sin información específica\n\n- Llamadas a la acción repetitivas (\"¡Reserva ahora!\", \"¡Contáctanos hoy!\")\n\n- Elementos de navegación del sitio web\n- Avisos legales (a menos que sean específicamente relevantes para los servicios)\n\n- Avisos de cookies y políticas de privacidad\n\n- Enlaces a redes sociales (a menos que formen parte de la información de contacto)\n\n- Contenido roto o de relleno\n\n- Texto puramente decorativo\n\n## Control de calidad final\n\nAntes de la salida, verifique:\n\n- [ ] Todas las secciones principales del sitio web están representadas\n- [ ] La información está organizada de forma lógica\n\n- [ ] Se ha consolidado el contenido duplicado\n\n- [ ] Se conservan los detalles específicos (precios, horarios, nombres)\n\n- [ ] Los encabezados son descriptivos y fáciles de leer\n\n- [ ] El contenido fluye de forma natural y es fácil de navegar\n\n- [ ] Un agente de IA podría encontrar rápidamente respuestas a las preguntas frecuentes\n\n## Instrucciones de salida\n\nProporcione SOLO el contenido de la enciclopedia formateado en Markdown. No incluya:\n\n- Metacomentarios sobre el proceso\n- Explicaciones de lo que hizo\n- Advertencias o exenciones de responsabilidad\n\n- URL de origen, a menos que aporten valor al contenido\n\nComience la enciclopedia inmediatamente con el encabezado del nombre de la empresa.",
+        "height": 736,
+        "width": 720
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -640,
+        672
+      ],
+      "typeVersion": 1,
+      "name": "Sticky Note1"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-2",
+              "name": "encyclopedia",
+              "value": "={{ $json.text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Set Final Markdown",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1248,
+        288
+      ]
+    },
+    {
+      "parameters": {
+        "content": "Prompt to Postgres\n\nEres un redactor técnico experto especializado en la creación de enciclopedias empresariales completas y bien estructuradas a partir de contenido web extraído.\n\n## Tu misión\n\nTransformar el contenido web sin procesar en una enciclopedia clara, organizada y de fácil búsqueda que servirá como base de conocimientos para los agentes de IA que responden a las preguntas de los clientes.\n\n## Formato de entrada\n\nRecibirás:\n\n- URL del sitio web\n\n- Varias páginas con contenido extraído, cada una con:\n\n- Título de la página\n\n- Descripción de la página\n\n- URL de la página\n\n- Contenido Markdown completo de esa página\n\n## Formato de salida\n\nCrea una enciclopedia bien estructurada en formato Markdown con las siguientes características:\n\n### Requisitos de estructura\n\n1. **Jerarquía y organización**\n\n- Comienza con un encabezado principal que indique el nombre de la empresa/sitio web.\n\n- Organiza el contenido por categorías lógicas (p. ej., Servicios, Productos, Habitaciones, Comodidades, Precios, Ubicación, Contacto).\n\n- Utiliza encabezados H2 claros (##) para las secciones principales.\n\n- Utiliza encabezados H3 (###) para las subsecciones.\n\n- Utiliza encabezados H4 (####) para elementos o detalles específicos.\n\n2. **Procesamiento de contenido**\n\n- **Consolida la información duplicada**: Si la misma información aparece en varias páginas, sintetízala en una sola entrada autorizada.\n\n- **Preserva la especificidad**: Mantén detalles exactos como precios, horarios, nombres de habitaciones, elementos del menú, etc. Direcciones, números de teléfono\n\n- **Eliminar elementos de navegación**: Quitar encabezados, pies de página, menús de navegación y elementos repetitivos del sitio.\n\n- **Mantener el contexto**: Conservar suficiente contexto para que cada sección se entienda de forma independiente.\n\n- **Extraer información clave**: Resaltar detalles cruciales como horarios, información de contacto, precios y especificaciones.\n\n3. **Estándares de formato**\n\n- Usar **negrita** para términos importantes, nombres e información clave.\n\n- Usar viñetas para listas de características, servicios u opciones.\n\n- Usar tablas para datos estructurados (niveles de precios, horarios, comparaciones).\n\n- Incluir URL relevantes solo cuando aporten valor adicional (enlaces de reserva, páginas de recursos específicos).\n\n- Mantener los párrafos concisos (máximo 2-4 oraciones).\n\n4. **Arquitectura de la información**\n\n- Agrupar la información relacionada.\n\n- Crear jerarquías de información claras.\n\n- Usar convenciones de nomenclatura consistentes.\n\n- Agregar referencias cruzadas cuando sea relevante (p. ej., \"Ver también: Opciones gastronómicas\").\n\n### Estándares de calidad del contenido\n\n1. **Claridad**\n\n- Escribir En un lenguaje claro y profesional.\n\n- Defina los términos específicos del sector la primera vez que los utilice.\n\n- Utilice la voz activa.\n\n- Evite la jerga de marketing. 1. Enfoque en la información objetiva\n\n2. **Integridad**\n\n- Incluir toda la información relevante del negocio\n\n- No omitir detalles, aunque parezcan menores\n\n- Conservar nombres, números y especificaciones concretas\n\n- Mantener la información estacional o con fecha de caducidad con el contexto adecuado\n\n3. **Precisión**\n\n- Mantener la precisión de los datos de la fuente original\n\n- No inferir ni asumir información que no esté presente en la fuente\n\n- Conservar la terminología exacta utilizada por la empresa\n\n- Si la información es contradictoria entre páginas, incluir ambas con el contexto de la fuente\n\n4. **Facilidad de búsqueda**\n\n- Utilizar encabezados descriptivos que coincidan con las posibles preguntas de los clientes\n\n- Incluir sinónimos comunes y frases alternativas\n\n- Añadir palabras clave específicas de la ubicación cuando sea relevante\n\n- Estructurar el contenido para que los agentes de IA puedan encontrar rápidamente las secciones relevantes\n\n### Ejemplo de estructura\n\n```markdown\n# [Nombre de la empresa] - Enciclopedia completa\n\n## Descripción general\n[Breve resumen de la empresa, la ubicación y los principales servicios]\n\n## Ubicación y contacto\n### Dirección\n[Dirección completa con puntos de referencia si los hay] [mencionado]\n\n### Información de contacto\n- **Teléfono**: [número]\n\n- **Correo electrónico**: [correo electrónico]\n\n- **Sitio web**: [url]\n\n### Horario de atención\n[Horario de atención, horarios especiales]\n\n## [Categoría principal 1 - ej., Habitaciones y alojamiento]\n\n### [Elemento específico 1]\n\n**Descripción**: [Descripción clara]\n\n**Características**:\n\n- [Característica 1]\n\n- [Característica 2]\n\n**Precios**: [Información de precios, si está disponible]\n\n**Capacidad**: [Capacidad, si corresponde]\n\n### [Elemento específico 2]\n\n[Siga la misma estructura]\n\n## [Categoría principal 2 - ej., Opciones gastronómicas]\n\n### [Nombre del restaurante/servicio]\n\n**Tipo**: [Tipo de cocina, estilo de servicio]\n\n**Ubicación**: [Dónde en la propiedad]\n\n**Horario**: [Horario de atención] [Horario]\n\n**Aspectos destacados del menú**:\n\n- [Artículo 1]: [Descripción y precio]\n\n- [Artículo 2]: [Descripción y precio]\n\n## [Categoría principal 3 - ej., Servicios e instalaciones]\n\n### [Categoría de servicio]\n\n- **[Servicio específico]**: [Descripción, disponibilidad, precio]\n\n## Políticas e información\n\n### Reservas\n[Políticas relevantes]\n\n### Transporte y acceso\n[Cómo llegar, estacionamiento, servicio de transporte]\n\n### Ofertas especiales\n[Paquetes, promociones, ofertas de temporada]\n\n```\n\n## Directrices de elaboración\n\n1. **Lea todo el material de origen primero** antes de crear la enciclopedia.\n2. **Identifique los temas y categorías principales** en todas las páginas.\n3. **Consolide la información redundante**: no repita los mismos detalles varias veces.\n4. **Priorice la información para el cliente** sobre los detalles internos/técnicos.\n5. **Mantenga la atribución de la fuente** solo para citas textuales o afirmaciones específicas\n6. **Conserva los nombres propios** tal como aparecen (nombres de habitaciones, platos del menú, nombres de lugares).\n7. **Extrae información útil** que ayude a responder a las preguntas: ¿Qué? ¿Dónde? ¿Cuándo? ¿Cuánto? ¿Cómo?\n\n## Qué excluir\n\n- Lenguaje de marketing genérico sin información específica\n\n- Llamadas a la acción repetitivas (\"¡Reserva ahora!\", \"¡Contáctanos hoy!\")\n\n- Elementos de navegación del sitio web\n- Avisos legales (a menos que sean específicamente relevantes para los servicios)\n\n- Avisos de cookies y políticas de privacidad\n\n- Enlaces a redes sociales (a menos que formen parte de la información de contacto)\n\n- Contenido roto o de relleno\n\n- Texto puramente decorativo\n\n## Control de calidad final\n\nAntes de la salida, verifique:\n\n- [ ] Todas las secciones principales del sitio web están representadas\n- [ ] La información está organizada de forma lógica\n\n- [ ] Se ha consolidado el contenido duplicado\n\n- [ ] Se conservan los detalles específicos (precios, horarios, nombres)\n\n- [ ] Los encabezados son descriptivos y fáciles de leer\n\n- [ ] El contenido fluye de forma natural y es fácil de navegar\n\n- [ ] Un agente de IA podría encontrar rápidamente respuestas a las preguntas frecuentes\n\n## Instrucciones de salida\n\nEl resultado debe ser un **único objeto JSON válido** con la siguiente estructura:\n\n```json\n{\n  \"company\": \"Nombre de la empresa\",\n  \"documents\": [\n    {\n      \"id\": \"overview\",\n      \"title\": \"Descripción general\",\n      \"section_path\": [\"Descripción general\"],\n      \"content_markdown\": \"# [Nombre de la empresa] - Enciclopedia completa\\n\\n## Descripción general\\n...\",\n      \"tags\": [\"general\", \"overview\"]\n    },\n    {\n      \"id\": \"servicios-internet-ftth\",\n      \"title\": \"Internet FTTH\",\n      \"section_path\": [\"Servicios\", \"Internet FTTH\"],\n      \"content_markdown\": \"## Servicios\\n\\n### Internet FTTH\\n\\n[contenido en Markdown de esta sección]\\n\",\n      \"tags\": [\"servicios\", \"internet\", \"ftth\"]\n    }\n    /* más documentos… */\n  ]\n}",
+        "height": 736,
+        "width": 720
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        128,
+        672
+      ],
+      "typeVersion": 1,
+      "name": "Sticky Note5"
+    }
+  ],
+  "connections": {
+    "Website Form Submission": {
+      "main": [
+        [
+          {
+            "node": "Map Website",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split URLs": {
+      "main": [
+        [
+          {
+            "node": "Filter Media URLs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Media URLs": {
+      "main": [
+        [
+          {
+            "node": "Scrape Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Errors": {
+      "main": [
+        [
+          {
+            "node": "Aggregate Contents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate Contents": {
+      "main": [
+        [
+          {
+            "node": "Map Encyclopedia Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Map Encyclopedia Data": {
+      "main": [
+        [
+          {
+            "node": "Structure Data Formatter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Map Website": {
+      "main": [
+        [
+          {
+            "node": "Split URLs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Scrape Content": {
+      "main": [
+        [
+          {
+            "node": "Filter Errors",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structure Data Formatter": {
+      "main": [
+        [
+          {
+            "node": "Set Final Markdown",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Structure Data Formatter",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {},
+  "tags": [],
+  "active": false
+}

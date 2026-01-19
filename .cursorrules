@@ -1,0 +1,6 @@
+### 🤖 n8n-as-code-start
+# n8n-as-code rules
+- Refer to AGENTS.md for n8n workflow standards.
+- Use @n8n-as-code/agent-cli tools to prevent parameter hallucinations.
+- Validate all workflow JSON against n8n-schema.json.
+### 🤖 n8n-as-code-end
