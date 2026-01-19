@@ -69,3 +69,5 @@ coverage/
 
 # Claude Code
 .claude/
+workflows/n8n_kynsoft_keimer_m/.n8n-state.json
+n8n-as-code-instance.json
