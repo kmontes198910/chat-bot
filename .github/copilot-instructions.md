@@ -152,7 +152,50 @@ Once configured, you can interact with n8n workflows using natural language in C
 - "Execute the web scraping workflow"
 - "Create a new workflow with HTTP and Code nodes"
 
-### Direct API Access
+## ⚠️ CRITICAL: Workflow Management Policy
+
+**MANDATORY: Always use the provided workflow management tools and scripts. NEVER manually edit JSON files.**
+
+### ✅ CORRECT Approach
+
+Use the workflow management script for ALL n8n operations:
+
+```bash
+# List all workflows on the server
+./n8n-workflow.sh list
+
+# Get workflow details from server
+./n8n-workflow.sh get <workflow_id>
+
+# Update workflow on server
+./n8n-workflow.sh update <workflow_id> <updated_file.json>
+
+# Validate workflow before updating
+./n8n-workflow.sh validate <file.json>
+```
+
+Or use MCP tools directly:
+- `mcp_n8n-mcp_n8n_list_workflows`
+- `mcp_n8n-mcp_n8n_get_workflow`
+- `mcp_n8n-mcp_n8n_update_partial_workflow`
+- `mcp_n8n-mcp_n8n_update_full_workflow`
+
+### ❌ FORBIDDEN Actions
+
+- **NEVER** manually edit workflow JSON files in the `workflows/` directory
+- **NEVER** use `curl` commands directly to modify n8n workflows
+- **NEVER** bypass the MCP layer with direct API calls
+- **NEVER** create duplicate workflow files
+
+### Why This Policy Exists
+
+1. **Data Integrity**: Direct JSON editing can cause inconsistencies between local files and server state
+2. **Version Control**: MCP tools handle versioning and rollback automatically
+3. **Validation**: Built-in validation prevents deployment of broken workflows
+4. **Efficiency**: Single API call vs multiple file operations
+5. **Safety**: Prevents accidental overwrites and data loss
+
+### Direct API Access (For Reference Only)
 
 You can also use the n8n API directly:
 
@@ -165,7 +208,7 @@ curl -X GET "https://n8n.kynsoft.net/api/v1/workflows" \
 curl -X GET "https://n8n.kynsoft.net/api/v1/workflows/{id}" \
   -H "X-N8N-API-KEY: your-api-key"
 
-# Execute a workflow
+# Execute workflow
 curl -X POST "https://n8n.kynsoft.net/api/v1/workflows/{id}/execute" \
   -H "X-N8N-API-KEY: your-api-key"
 ```
@@ -175,13 +218,21 @@ curl -X POST "https://n8n.kynsoft.net/api/v1/workflows/{id}/execute" \
 ```
 n8n-chatbot/
 ├── .github/
-│   └── copilot-instructions.md    # This file
+│   └── copilot-instructions.md    # This file - MANDATORY workflow management rules
 ├── .env                            # Environment variables (not in git)
 ├── .env.example                    # Environment template
 ├── docker-compose.yml              # Docker orchestration
+├── n8n-workflow.sh                 # ⚠️ REQUIRED: Workflow management script
+├── workflows/                      # 📁 REFERENCE ONLY: Backup copies, NOT for editing
+│   └── n8n_kynsoft_keimer_m/
+│       ├── Chatbot-kynsoft.json    # Reference copy only
+│       └── chatbot-v1.json         # Reference copy only
 ├── COPILOT_MCP_SETUP.md           # MCP setup guide
-└── mcp-config-vscode.json         # MCP configuration
+├── mcp-config-vscode.json         # MCP configuration
+└── README.md                      # Project documentation
 ```
+
+**⚠️ IMPORTANT**: The `workflows/` directory contains reference/backup copies only. Production workflows are managed through the n8n server using the `n8n-workflow.sh` script or MCP tools. NEVER edit these files directly.
 
 ## Environment Variables
 
@@ -262,11 +313,34 @@ docker exec -it n8n-mcp sh
 ## Contributing
 
 When working on this project:
-1. Test MCP server changes locally first
-2. Update this documentation if adding new features
-3. Follow existing environment variable patterns
-4. Keep sensitive data in `.env` file only
-5. Document any new n8n workflows or nodes used
+1. **MANDATORY**: Use workflow management scripts/tools for ALL n8n operations
+2. **NEVER** manually edit workflow JSON files - use MCP tools instead
+3. Test MCP server changes locally first
+4. Update this documentation if adding new features
+5. Follow existing environment variable patterns
+6. Keep sensitive data in `.env` file only
+7. Document any new n8n workflows or nodes used
+
+### Workflow Development Workflow
+
+```bash
+# 1. Get current workflow from server
+./n8n-workflow.sh get <workflow_id> > temp-workflow.json
+
+# 2. Make your changes to temp-workflow.json
+# ... edit the file ...
+
+# 3. Validate the changes
+./n8n-workflow.sh validate temp-workflow.json
+
+# 4. Update on server
+./n8n-workflow.sh update <workflow_id> temp-workflow.json
+
+# 5. Clean up
+rm temp-workflow.json
+```
+
+**Remember**: The `workflows/` directory contains backup/reference copies only. Production workflows live on the n8n server.
 
 ## License
 

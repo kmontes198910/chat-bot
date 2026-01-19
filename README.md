@@ -33,7 +33,71 @@ n8n Cloud Instance (n8n.kynsoft.net)
 - **Transport**: Converts stdio ↔ HTTP with Server-Sent Events (SSE)
 - **Session Management**: Maintains MCP session IDs across requests
 
-## 📊 Current Workflows
+## �️ Workflow Management
+
+### ⚡ Quick Commands (Recommended)
+
+Use the provided script for efficient workflow management:
+
+```bash
+# List all workflows
+./n8n-workflow.sh list
+
+# Get workflow details
+./n8n-workflow.sh get <workflow_id>
+
+# Update workflow from JSON file
+./n8n-workflow.sh update <workflow_id> <file.json>
+
+# Validate workflow JSON
+./n8n-workflow.sh validate <file.json>
+
+# Check MCP server health
+./n8n-workflow.sh health
+```
+
+### 🔄 Best Practices
+
+**✅ DO:**
+- Use MCP tools for direct server interaction
+- Validate JSON before updating workflows
+- Keep local copies as backup
+- Use the management script for common operations
+
+**❌ DON'T:**
+- Manually edit JSON files when MCP server is available
+- Forget to validate changes
+- Update workflows without testing
+
+### 📝 Example Workflow Update
+
+```bash
+# 1. Get current workflow
+./n8n-workflow.sh get E5pYhC0Z0YlUgiWT > current-workflow.json
+
+# 2. Edit the workflow (manually or programmatically)
+# ... make your changes ...
+
+# 3. Validate the JSON
+./n8n-workflow.sh validate current-workflow.json
+
+# 4. Update on server
+./n8n-workflow.sh update E5pYhC0Z0YlUgiWT current-workflow.json
+```
+
+### 🔧 MCP Tools Available
+
+When MCP server is running, use these tools directly:
+
+- **List Workflows**: `mcp_n8n-mcp_n8n_list_workflows`
+- **Get Workflow**: `mcp_n8n-mcp_n8n_get_workflow`
+- **Update Workflow**: `mcp_n8n-mcp_n8n_update_full_workflow`
+- **Partial Update**: `mcp_n8n-mcp_n8n_update_partial_workflow`
+- **Validate**: `mcp_n8n-mcp_validate_workflow`
+- **Create**: `mcp_n8n-mcp_n8n_create_workflow`
+- **Delete**: `mcp_n8n-mcp_n8n_delete_workflow`
+
+## �📊 Current Workflows
 
 The project contains **3 active workflows** with **32 unique node types**:
 

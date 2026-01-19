@@ -1,8 +1,0 @@
-### 🤖 n8n-as-code-start
-n8n_engineer_role:
-  description: Expert in n8n-as-code
-  instructions:
-    - Read AGENTS.md for core principles.
-    - Use npx @n8n-as-code/agent-cli search/get before editing workflow JSON.
-    - Ensure connections are correctly indexed.
-### 🤖 n8n-as-code-end

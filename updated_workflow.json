@@ -1,6 +1,6 @@
 {
-  "id": "zX68ZlNDD302CtjA",
-  "name": "chatbot-v1",
+  "id": "vFtXc0Gn3ROx9fZwmDmHU",
+  "name": "Chatbot-kynsoft",
   "nodes": [
     {
       "parameters": {
@@ -131,6 +131,10 @@
         "color": 4
       },
       "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        224,
+        -80
+      ],
       "typeVersion": 1,
       "name": "Sticky Note"
     },
@@ -150,11 +154,11 @@
           "parameters": [
             {
               "name": "=startDate",
-              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters0_Value', `User can provide a range of date:\ntale the lower date as startDate\nif not:\nstartDate = Today Date`, 'string') }}"
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters0_Value', `User can provide a range of date:\ntale the lower date as startDate\nif not:\nstartDate = Today Date`, 'string') }"
             },
             {
               "name": "endDate",
-              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters1_Value', `User can provide a range of date:\ntale the upper date as endDate\nif not:\nendDate = startDate plus 30 days`, 'string') }}"
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters1_Value', `User can provide a range of date:\ntale the upper date as endDate\nif not:\nendDate = startDate plus 30 days`, 'string') }"
             }
           ]
         },
@@ -180,7 +184,7 @@
           "response": {
             "response": {
               "responseFormat": "text",
-              "outputPropertyName": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Put_Output_in_Field', ``, 'string') }}"
+              "outputPropertyName": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Put_Output_in_Field', ``, 'string') }"
             }
           }
         }
