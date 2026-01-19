@@ -1,0 +1,546 @@
+type: collection.insomnia.rest/5.0
+schema_version: "5.1"
+name: Recept
+meta:
+  id: wrk_0f958ed9801c474aa33ce137e79db673
+  created: 1768395948747
+  modified: 1768395948747
+  description: ""
+collection:
+  - url: "{{ _['backend-doctorkyn'] }}/calendar/api/receipt"
+    name: CreateReceipt
+    meta:
+      id: req_77632683a943414583552e1654ca84ef
+      created: 1768395948749
+      modified: 1768584114459
+      isPrivate: false
+      description: ""
+      sortKey: -1768397861555.9844
+    method: POST
+    body:
+      mimeType: application/json
+      text: >-
+        {
+            "isOnline": false,
+            "reason": "",
+            "userId": "fddc0e19-62d7-47c9-abc4-32cc98d649be",
+            "scheduleId": "d5f22169-d140-4b5f-ac35-e3e0f678ba64",
+            "serviceId": "aab1faf4-3c9d-4e44-8a70-76ec05cfa66b",
+            "status": "PRE_RESERVE"
+        }
+
+
+        /**
+            "isOnline": false,																																				Consulta Online (Zoom, Meet)
+            "reason": "",																																								Raz'on de porque la consulta
+            "userId": "fddc0e19-62d7-47c9-abc4-32cc98d649be",             Sacarlo de Token JWT
+            "scheduleId": "d5f22169-d140-4b5f-ac35-e3e0f678ba64",       Hora de la Cita
+            "serviceId": "aab1faf4-3c9d-4e44-8a70-76ec05cfa66b",           Servicio de la Consulta
+            "status": "PRE_RESERVE"																												Estado de reserva
+        **/
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: Authorization
+        value: "{{ _['doctorkyn-jwt'] }}"
+        description: ""
+        disabled: false
+    authentication:
+      type: none
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _['backend-doctorkyn']
+      }}/calendar/api/schedules/geo/available-days/560394b5-79d3-4e95-b6b4-1c6d\
+      bf2f039d"
+    name: getAvailableDayXBusinessXServiceXRangeDate
+    meta:
+      id: req_98b8e124f2fc42f3b278a755e5c540f7
+      created: 1768395948750
+      modified: 1768584069233
+      isPrivate: false
+      description: ""
+      sortKey: -1768399776958.9688
+    method: POST
+    body:
+      mimeType: application/json
+      text: |-
+        {
+            "serviceId": "aab1faf4-3c9d-4e44-8a70-76ec05cfa66b",
+            "startDate": "2026-01-10",
+            "endDate": "2026-02-09"
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: Authorization
+        value: "{{ _['doctorkyn-jwt'] }}"
+        description: ""
+        disabled: false
+    authentication:
+      type: bearer
+      disabled: false
+      token: eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJCQXhWWVFIOVlwRXB2Rnpjbnhjb1JjQWxhaXloeXQzSklJTXA3TjhWNThnIn0.eyJleHAiOjE3NjgwNzkwODUsImlhdCI6MTc2ODA0MzA4NSwianRpIjoiZTkwOTNjMTctYjIwMS00ZTFhLTg1ZTctMzM5ZTU4MDFiNTlmIiwiaXNzIjoiaHR0cHM6Ly9zc28tZGV2Lmt5bnNvZnQubmV0L3JlYWxtcy9tZWRpbmVjIiwiYXVkIjoiYWNjb3VudCIsInN1YiI6ImVmNDMzZDM2LTQ5NmMtNDM1My1iMzY5LTk2NzdmYWZjNWNiZSIsInR5cCI6IkJlYXJlciIsImF6cCI6Im1lZGluZWMiLCJzZXNzaW9uX3N0YXRlIjoiYjA1NzA1MjYtYWEyOC00NGM1LTgwMWMtM2NmMmE2ZTU4MTAzIiwiYWNyIjoiMSIsImFsbG93ZWQtb3JpZ2lucyI6WyIvKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiZGVmYXVsdC1yb2xlcy1tZWRpbmVjIiwib2ZmbGluZV9hY2Nlc3MiLCJET0NUT1JTIiwidW1hX2F1dGhvcml6YXRpb24iXX0sInJlc291cmNlX2FjY2VzcyI6eyJtZWRpbmVjIjp7InJvbGVzIjpbIkRPQ1RPUlMiXX0sImFjY291bnQiOnsicm9sZXMiOlsibWFuYWdlLWFjY291bnQiLCJtYW5hZ2UtYWNjb3VudC1saW5rcyIsInZpZXctcHJvZmlsZSJdfX0sInNjb3BlIjoiZW1haWwgcHJvZmlsZSIsInNpZCI6ImIwNTcwNTI2LWFhMjgtNDRjNS04MDFjLTNjZjJhNmU1ODEwMyIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJuYW1lIjoiQ0FSTE9TIE9GVEFMTU9MT0dJQSIsInByZWZlcnJlZF91c2VybmFtZSI6Im9mdEBleGFtcGxlLmNvbSIsImdpdmVuX25hbWUiOiJDQVJMT1MiLCJmYW1pbHlfbmFtZSI6Ik9GVEFMTU9MT0dJQSIsImVtYWlsIjoib2Z0QGV4YW1wbGUuY29tIn0.P9BgNE2aiVdZhn57VuDfbvyJSaZB_KPvncBgUzTxQgPhgQLa8XXrmIcSItTOozIfy7iDosnYpIjLFX4qzL4JJWHsadN8tScstJ0Cugc14Ri3RsLdpuE0Emetbay6BPT0Wed6GhAnQ3i95ETL3cZJ-tNZzeL53e_LfQTT_QT242G_Q8cCF6KOZL_xr4JEINzWbBGYW1WCUBYJ9O_FVuGJm-7CDvUb4b6ZmVRPbOLglcAjg_w3MLt9uT0JGczIaQ4wDU9yZ3RCq4O-blBydrdC4Wc1qhuVa1rSK_UOl4SR_EwGOXx5_pUaEbcRMSiFxOizraQEqxcb_8BMqLpLqhBKQA
+      prefix: ""
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _['backend-doctorkyn']
+      }}/calendar/api/schedules/geo/search-services-by-business/560394b5-79d3-4\
+      e95-b6b4-1c6dbf2f039d"
+    name: getServicesXRangeOfDateXBusiness
+    meta:
+      id: req_746ff1a57a5849209eeda41c93259957
+      created: 1768518265490
+      modified: 1768607718648
+      isPrivate: false
+      description: ""
+      sortKey: -1768457063656.5
+    method: POST
+    body:
+      mimeType: application/json
+      text: |-
+        {
+        	"startDate": "2026-01-15",
+        	"endDate": "2026-02-14"
+        }
+
+        /** 
+        	"startDate": "2026-01-15", 																											 Fecha de Inicio
+        	"endDate": "2026-02-14",																												Fecha de Fin
+        **/
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/12.2.0
+        description: ""
+        disabled: false
+      - name: Authorization
+        value: "{{ _['doctorkyn-jwt'] }}"
+        description: ""
+        disabled: true
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: https://doctorkyn-dev-api.kynsoft.net/identity/api/auth/authenticate
+    name: login
+    meta:
+      id: req_a4af81d0c0064fd6aeb14d05402aa977
+      created: 1768519247184
+      modified: 1768530483389
+      isPrivate: false
+      description: ""
+      sortKey: -1768518156204
+    method: POST
+    body:
+      mimeType: application/json
+      text: |-
+        {
+        	"username": "haposo3751@eubonus.com",
+        	"password": "Cliente123"
+        }
+
+        /**
+        	"username": "haposo3751@eubonus.com", 									Nombre de Usuario
+        	"password": "Cliente123"																								Password del Usuario
+        **/
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/12.2.0
+        description: ""
+        disabled: false
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _['backend-doctorkyn']
+      }}/calendar/api/schedules/geo/services-with-schedules/560394b5-79d3-4e95-\
+      b6b4-1c6dbf2f039d"
+    name: getSheduleXServiceXBusiness
+    meta:
+      id: req_c5fbdfdc57f34750bb97d54fc28ee1a3
+      created: 1768521730811
+      modified: 1768530732532
+      isPrivate: false
+      description: ""
+      sortKey: -1768426517432.75
+    method: POST
+    body:
+      mimeType: application/json
+      text: >-
+        {
+        	"serviceId": "aab1faf4-3c9d-4e44-8a70-76ec05cfa66b",
+        	"dia": "2026-01-16"
+        }
+
+
+        /** 
+        	"dia": "2026-01-15", 																											                  Fecha
+        	"serviceId": "aab1faf4-3c9d-4e44-8a70-76ec05cfa66b",               ID de Servicio
+        **/
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/12.2.0
+        description: ""
+        disabled: false
+      - name: Authorization
+        value: "{{ _['doctorkyn-jwt'] }}"
+        description: ""
+        disabled: false
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _['backend-doctorkyn']
+      }}/calendar/api/schedules/geo/services-with-schedules/560394b5-79d3-4e95-\
+      b6b4-1c6dbf2f039d"
+    name: getSheduleXServiceXDoctorXBusiness
+    meta:
+      id: req_3e52bbabdd8647c2930c3181e31ffdf3
+      created: 1768522091325
+      modified: 1768530784970
+      isPrivate: false
+      description: ""
+      sortKey: -1768411244320.875
+    method: POST
+    body:
+      mimeType: application/json
+      text: >-
+        {
+        	"resourceId": "b8837144-8ac0-4556-9e8e-aac8df7079fc",
+        	"serviceId": "aab1faf4-3c9d-4e44-8a70-76ec05cfa66b",
+        	"dia": "2026-01-16"
+        }
+
+
+        /** 
+        	"dia": "2026-01-15", 																											                  Fecha
+        	"serviceId": "aab1faf4-3c9d-4e44-8a70-76ec05cfa66b",               ID de Servicio
+          "resourceId": "b8837144-8ac0-4556-9e8e-aac8df7079fc",           ID de Doctor
+        **/
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/12.2.0
+        description: ""
+        disabled: false
+      - name: Authorization
+        value: "{{ _['doctorkyn-jwt'] }}"
+        description: ""
+        disabled: false
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _['backend-doctorkyn'] }}/calendar/api/schedules/geo/search-businesses"
+    name: getBusinessXRangeOfDate
+    meta:
+      id: req_f331a0cc729b495299327b0cb366ea8d
+      created: 1768522203482
+      modified: 1768607209785
+      isPrivate: false
+      description: ""
+      sortKey: -1768487609880.25
+    method: POST
+    body:
+      mimeType: application/json
+      text: >-
+        {
+        	"startDate": "2026-01-15",
+        	"endDate": "2026-02-14",
+        	"page": 0,
+        	"pageSize": 20,
+        	"sortBy": "NAME",
+        	"sortDirection": "ASC"
+        }
+
+
+        /** 
+        	"startDate": "2026-01-15", 																											 Fecha de Inicio
+        	"endDate": "2026-02-14",																												Fecha de Fin
+        	"page": 0,                                                                                No de Pagina
+        	"pageSize": 20,                                                                       Cant. Item por Pagina
+        	"sortBy": "DISTANCE",                                                           Filtro por Distancia
+        	"sortDirection": "ASC                                                              Orden de Resultados
+        **/
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/12.2.0
+        description: ""
+        disabled: false
+      - name: Authorization
+        value: "{{ _['doctorkyn-jwt'] }}"
+        description: ""
+        disabled: true
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _['backend-doctorkyn'] }}/calendar/api/schedules/geo/search-resources"
+    name: getSheduleXDoctorXServiceXBusiness
+    meta:
+      id: req_4b221623bb334d11b6300250b7ce9037
+      created: 1768522483623
+      modified: 1768531093954
+      isPrivate: false
+      description: ""
+      sortKey: -1768403607764.9375
+    method: POST
+    body:
+      mimeType: application/json
+      text: >-
+        {
+            "startDate": "2026-01-15",
+            "endDate": "2026-02-14",
+            "specialtyId": "aab1faf4-3c9d-4e44-8a70-76ec05cfa66b",
+            "businessIds": [
+                "560394b5-79d3-4e95-b6b4-1c6dbf2f039d"
+            ],
+            "query": "",
+            "page": 0,
+            "pageSize": 20
+        }
+
+
+        /** 
+          "startDate": "2026-01-15", 																											 Fecha de Inicio
+        	"endDate": "2026-02-14",																												Fecha de Fin
+        	"dia": "2026-01-15", 																											           Fecha
+        	"specialtyId": "aab1faf4-3c9d-4e44-8a70-76ec05cfa66b",      ID de Servicio
+          "businessIds": [																																				IDs de Negocio
+                "560394b5-79d3-4e95-b6b4-1c6dbf2f039d"
+            ],
+        	"query": "",																																							???????????
+        	"page": 0,                                                                                No de Pagina
+        	"pageSize": 20,                                                                       Cant. Item por Pagina
+
+        		
+        **/
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/12.2.0
+        description: ""
+        disabled: false
+      - name: Authorization
+        value: "{{ _['doctorkyn-jwt'] }}"
+        description: ""
+        disabled: false
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _['backend-doctorkyn'] }}/calendar/api/schedules/geo/search-businesses"
+    name: getBusinessXSpecialtyRangeOfDate
+    meta:
+      id: req_31a35266982a4fe699a19efc5f300e08
+      created: 1768522597427
+      modified: 1768525046632
+      isPrivate: false
+      description: ""
+      sortKey: -1768472336768.375
+    method: POST
+    body:
+      mimeType: application/json
+      text: >-
+        {
+        	"startDate": "2026-01-15",
+        	"endDate": "2026-02-14",
+        	"specialtyId": "aab1faf4-3c9d-4e44-8a70-76ec05cfa66b",
+        	"radiusKm": 10,
+        	"page": 0,
+        	"pageSize": 20,
+        	"sortBy": "DISTANCE",
+        	"sortDirection": "ASC"
+        }
+
+
+        /** 
+        	"startDate": "2026-01-15", 																											 El rango de fecha es obligado 
+        	"endDate": "2026-02-14", 																												El rango de fecha es obligado 
+        	"specialtyId": "aab1faf4-3c9d-4e44-8a70-76ec05cfa66b",     Id de especialidad
+        	"radiusKm": 10,																																				Radio de KM en busqueda
+        	"page": 0,                                                                                No de Pagina
+        	"pageSize": 20,                                                                       Cant. Item por Pagina
+        	"sortBy": "DISTANCE",                                                           Filtro por Distancia
+        	"sortDirection": "ASC                                                              Orden de Resultados
+
+        **/
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/12.2.0
+        description: ""
+        disabled: false
+      - name: Authorization
+        value: "{{ _['doctorkyn-jwt'] }}"
+        description: ""
+        disabled: false
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _['backend-doctorkyn'] }}/calendar/api/receipt"
+    name: CreateReceiptMultiplePerson
+    meta:
+      id: req_0315d7d966fd4f42b725943b57cbe69b
+      created: 1768523181999
+      modified: 1768584122455
+      isPrivate: false
+      description: ""
+      sortKey: -1768396903854.4922
+    method: POST
+    body:
+      mimeType: application/json
+      text: |-
+        {
+            "receipts": [
+                {
+                    "price": 50,
+                    "isOnline": false,
+                    "reasons": "Reserva desde la aplicación web",
+                    "userId": "8deb9e6e-6749-4f89-8b0e-0d9d3b47a1bc",
+                    "scheduleId": "753b7985-ae8e-4f39-bba3-6faf0691e909",
+                    "serviceId": "aab1faf4-3c9d-4e44-8a70-76ec05cfa66b",
+                    "status": "PRE_RESERVE"
+                },
+                {
+                    "price": 50,
+                    "isOnline": false,
+                    "reasons": "Reserva desde la aplicación web",
+                    "userId": "3b6da799-0ad7-4c70-ba4a-568f26281f6a",
+                    "scheduleId": "753b7985-ae8e-4f39-bba3-6faf0691e909",
+                    "serviceId": "aab1faf4-3c9d-4e44-8a70-76ec05cfa66b",
+                    "status": "PRE_RESERVE"
+                }
+            ]
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: Authorization
+        value: "{{ _['doctorkyn-jwt'] }}"
+        description: ""
+        disabled: false
+    authentication:
+      type: none
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: https://doctorkyn-dev-api.kynsoft.net/identity/api/auth/authenticate
+    name: getUserInfo
+    meta:
+      id: req_893388329ac74b2b8d41048b5f96b0c9
+      created: 1768583433923
+      modified: 1768583433923
+      isPrivate: false
+      description: ""
+      sortKey: -1768502883042.125
+    method: POST
+    body:
+      mimeType: application/json
+      text: |-
+        {
+        	"username": "haposo3751@eubonus.com",
+        	"password": "Cliente123"
+        }
+
+        /**
+        	"username": "haposo3751@eubonus.com", 									Nombre de Usuario
+        	"password": "Cliente123"																								Password del Usuario
+        **/
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: User-Agent
+        value: insomnia/12.2.0
+        description: ""
+        disabled: false
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+cookieJar:
+  name: Default Jar
+  meta:
+    id: jar_e91a6be48c3307fa5cfdb982e1c327b2eec8d8c0
+    created: 1768395948753
+    modified: 1768519596649
+  cookies:
+    - id: 8312d189-688f-42d0-89b0-8868e675c3cd
+      key: JSESSIONID
+      value: 246DBE4E4982A5326A8F00D87958706C
+      domain: doctorkyn-dev-api.kynsoft.net
+      path: /
+      secure: true
+      httpOnly: true
+      hostOnly: true
+environments:
+  name: Base Environment
+  meta:
+    id: env_e91a6be48c3307fa5cfdb982e1c327b2eec8d8c0
+    created: 1768395948752
+    modified: 1768521302460
+    isPrivate: false
+  data:
+    backend-doctorkyn: https://doctorkyn-dev-api.kynsoft.net
+    doctorkyn-jwt: Bearer
+      eyJhbGciOiJSUzI1NiIsInR5cCIgOiAiSldUIiwia2lkIiA6ICJCQXhWWVFIOVlwRXB2Rnpjbnhjb1JjQWxhaXloeXQzSklJTXA3TjhWNThnIn0.eyJleHAiOjE3Njg1NTU4MTUsImlhdCI6MTc2ODUxOTgxNSwianRpIjoiZDRlZmQwZTItZmY0YS00YThkLTgzZjUtYTVhMDE4MWZkY2I3IiwiaXNzIjoiaHR0cHM6Ly9zc28tZGV2Lmt5bnNvZnQubmV0L3JlYWxtcy9tZWRpbmVjIiwiYXVkIjoiYWNjb3VudCIsInN1YiI6IjdiYmNhNWE5LTczMmYtNDY2MC04NzBiLTg1MWQ0YjQ4OWMzMiIsInR5cCI6IkJlYXJlciIsImF6cCI6Im1lZGluZWMiLCJzZXNzaW9uX3N0YXRlIjoiZDg2YTkyODQtOTJiYi00OGZmLWIwODItYzNkMmI5MjlkZjk5IiwiYWNyIjoiMSIsImFsbG93ZWQtb3JpZ2lucyI6WyIvKiJdLCJyZWFsbV9hY2Nlc3MiOnsicm9sZXMiOlsiZGVmYXVsdC1yb2xlcy1tZWRpbmVjIiwiUEFUSUVOVFMiLCJvZmZsaW5lX2FjY2VzcyIsInVtYV9hdXRob3JpemF0aW9uIl19LCJyZXNvdXJjZV9hY2Nlc3MiOnsibWVkaW5lYyI6eyJyb2xlcyI6WyJQQVRJRU5UUyJdfSwiYWNjb3VudCI6eyJyb2xlcyI6WyJtYW5hZ2UtYWNjb3VudCIsIm1hbmFnZS1hY2NvdW50LWxpbmtzIiwidmlldy1wcm9maWxlIl19fSwic2NvcGUiOiJlbWFpbCBwcm9maWxlIiwic2lkIjoiZDg2YTkyODQtOTJiYi00OGZmLWIwODItYzNkMmI5MjlkZjk5IiwiZW1haWxfdmVyaWZpZWQiOnRydWUsIm5hbWUiOiJNYXJpbyBHb21lcyIsInByZWZlcnJlZF91c2VybmFtZSI6InVzZXJ0ZXN0MSIsImdpdmVuX25hbWUiOiJNYXJpbyIsImZhbWlseV9uYW1lIjoiR29tZXMiLCJlbWFpbCI6ImhhcG9zbzM3NTFAZXVib251cy5jb20ifQ.Nf_ESv4zO_414-TMx_RHFp9-lSOue5EKXxLebJ9nxaqB-oSNNpP3JhHLZVJDRTQnwFUF7_vLTom32BvoKotlDJDDsqWKQN5kmG-A9shC45CgacjqR2Py0Soebjpiib_ox49ini0fNrtdflqa_98IOEBrtL8lL3Y8Wv5EsUTozkO8IzFfC_rcGmuvsrl-63l7AQJ8coAIfLEGyAHHPwz0uTvvJkuiLBm3qqfpOnveksJiZ7KRo-TJ-zoYQlHDcN5GLm8YpYUsKIhoOgErscJpKH9rYAY3H-UA7QrDYMuZLBXn0oI7bIaQ0Pa5F-1ibdFSCBq8N0ZYW0lSs4sTaGaB7A

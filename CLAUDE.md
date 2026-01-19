@@ -2,6 +2,38 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Working Guidelines
+
+### File Modification Policy
+- **ALWAYS modify files in place** - Do NOT create "enhanced", "new", or "v2" versions
+- **Edit the original file** - Use the Edit tool to update existing files directly
+- **No summary documents** - Do NOT create summary files (like "SUMMARY.md", "CHANGES.md") unless explicitly requested
+- **No duplicate files** - Avoid creating backup or alternative versions
+
+**Example:**
+- ❌ Bad: Create `workflow-enhanced.json` when modifying `workflow.json`
+- ✅ Good: Edit `workflow.json` directly with improvements
+- ❌ Bad: Create `ENHANCEMENT_SUMMARY.md` after making changes
+- ✅ Good: Report changes directly in conversation
+
+### When to Create New Files
+Only create new files when:
+- User explicitly requests a new file
+- Adding genuinely new functionality (not modifications)
+- Creating required configuration files (.gitignore, etc.)
+
+### n8n Workflow Management Policy
+- **ALWAYS use n8n-mcp MCP tools** - Never use curl or direct API calls for n8n operations
+- **Use the MCP server** - Interact with n8n through the n8n-mcp Docker container
+- **Prefer MCP tools** - Use `n8n_update_partial_workflow`, `n8n_get_workflow`, etc. instead of REST API
+- **NO direct curl** - Do not bypass the MCP layer with curl commands
+
+**Example:**
+- ❌ Bad: `curl -X PUT "https://n8n.kynsoft.net/api/v1/workflows/{id}"` with manual API calls
+- ✅ Good: Use MCP tools like `n8n_update_partial_workflow` or `n8n_get_workflow`
+- ❌ Bad: Writing custom Node.js scripts to call n8n API
+- ✅ Good: Let the n8n-mcp server handle all n8n communication
+
 ## Project Overview
 
 This is an n8n-MCP integration project that bridges AI assistants (Claude Code, GitHub Copilot) with n8n workflow automation platform through the Model Context Protocol (MCP). The architecture enables natural language interaction with n8n workflows hosted at n8n.kynsoft.net.
