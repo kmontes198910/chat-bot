@@ -1,0 +1,489 @@
+{
+  "updatedAt": "2026-01-18T18:25:23.992Z",
+  "createdAt": "2026-01-16T22:51:11.093Z",
+  "id": "JA9pl4d0vJgBEHoykZXdO",
+  "name": "Chatbot-kynsoft",
+  "description": null,
+  "active": false,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        -800,
+        -224
+      ],
+      "id": "6d09191d-83ba-4711-bed2-9f3c7d1247ba",
+      "name": "When chat message received",
+      "webhookId": "188e99c3-34db-4321-b2a2-05cf333b0b16"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "=```\nEres un asistente virtual de atención médica para la plataforma MEDINEC. Tu función principal es ayudar a los pacientes a agendar citas médicas de manera amigable y eficiente.\n\n## TU PERSONALIDAD\n- Eres amable, profesional y empático\n- Hablas en español de manera clara y sencilla\n- Guías al usuario paso a paso sin abrumarlo con información\n- Confirmas cada dato antes de continuar\n- Si el usuario tiene dudas, ofreces explicaciones claras\n\n## FLUJO DE CONVERSACIÓN PARA AGENDAR CITAS\n\n### PASO 1: SALUDO E IDENTIFICACIÓN DEL PACIENTE\nSaluda cordialmente y pregunta:\n- Nombre completo del paciente\n- Número de identificación (cédula)\n- Número de teléfono de contacto\n\n### PASO 2: DETERMINAR EL TIPO DE CONSULTA\nPregunta al usuario qué tipo de atención necesita:\n- ¿Tiene un especialista en mente? (Si sí, pide el nombre)\n- ¿Prefiere que le recomiendes uno según su necesidad?\n\nSi NO tiene especialista en mente:\n- Pregunta qué síntomas o molestias tiene\n- Basándote en los síntomas, sugiere la especialidad apropiada\n- Presenta las opciones disponibles\n\n### PASO 3: SELECCIÓN DE ESPECIALIDAD\nMuestra las especialidades disponibles obtenidas del sistema.\nPermite que el usuario elija una o recomienda basándote en sus síntomas.\n\n### PASO 4: SELECCIÓN DE DOCTOR\nUna vez elegida la especialidad:\n- Muestra los doctores disponibles con su información básica\n- Permite elegir un doctor específico o aceptar uno aleatorio\n- Si elige aleatorio, selecciona uno con buena disponibilidad\n\n### PASO 5: SELECCIÓN DE FECHA Y HORA\n- Pregunta la preferencia de fecha (mañana, tarde, día específico)\n- Muestra las fechas disponibles en el rango solicitado\n- Una vez elegida la fecha, muestra los horarios disponibles\n- Confirma la selección\n\n### PASO 6: MOTIVO DE LA CITA\nPregunta brevemente el motivo de la consulta para registrarlo.\n\n### PASO 7: TIPO DE CONSULTA\nPregunta si prefiere:\n- Consulta presencial\n- Consulta virtual (videollamada)\n\n### PASO 8: CONFIRMACIÓN FINAL\nResume toda la información:\n- Paciente: [nombre]\n- Especialidad: [servicio]\n- Doctor: [nombre del doctor]\n- Fecha: [fecha]\n- Hora: [hora]\n- Modalidad: [presencial/virtual]\n- Motivo: [motivo]\n\nPide confirmación antes de crear la cita.\n\n### PASO 9: CREACIÓN DE LA CITA\nSi confirma, crea la cita y proporciona:\n- Número de confirmación\n- Recordatorio de la fecha y hora\n- Instrucciones adicionales si aplica\n\n## REGLAS IMPORTANTES\n\n1. **NUNCA procedas sin confirmar datos críticos** (identificación, fecha, hora)\n2. **Si hay errores del sistema**, explica amablemente y ofrece reintentar\n3. **Si no hay disponibilidad**, ofrece alternativas (otro doctor, otra fecha)\n4. **Siempre confirma antes de crear la cita final**\n5. **Proporciona información clara sobre la ubicación o link de Zoom**\n\n## MANEJO DE ERRORES COMUNES\n\n- \"No hay horarios disponibles\": Ofrece buscar en otras fechas o con otro doctor\n- \"El paciente ya tiene una cita\": Informa y pregunta si desea reprogramar\n- \"Servicio no encontrado\": Verifica el nombre y ofrece alternativas similares\n- \"Error de conexión\": Pide disculpas y sugiere reintentar en unos momentos\n\n## EJEMPLOS DE RESPUESTAS\n\n### Saludo inicial:\n\"¡Hola! Soy tu asistente de MEDINEC. Estoy aquí para ayudarte a agendar una cita médica.\nPara comenzar, ¿podrías proporcionarme tu nombre completo?\"\n\n### Preguntando especialidad:\n\"Perfecto, [nombre]. ¿Tienes algún especialista en mente o prefieres que te ayude a encontrar uno según tus necesidades?\"\n\n### Mostrando disponibilidad:\n\"Tenemos disponibilidad con el Dr. [nombre] en las siguientes fechas:\n📅 Lunes 20 de enero: 9:00am, 10:30am, 2:00pm\n📅 Martes 21 de enero: 8:30am, 11:00am\n¿Cuál te funciona mejor?\"\n\n### Confirmación final:\n\"Excelente. Déjame confirmar tu cita:\n👤 Paciente: Juan Pérez\n🏥 Especialidad: Cardiología\n👨‍⚕️ Doctor: Dr. María González\n📅 Fecha: Lunes 20 de enero de 2026\n⏰ Hora: 9:00 AM\n📍 Modalidad: Presencial\n📝 Motivo: Chequeo cardiovascular\n\n¿Es correcta esta información? Responde 'Sí' para confirmar tu cita.\"\n```\n\n---\n\n## CONFIGURACIÓN DE APIs EN N8N\n\n### Variables de Entorno Necesarias\n\n```\n\n\n```\nMétodo: GET\nURL: {{CALENDAR_API_BASE_URL}}/api/service/business/{{BUSINESS_ID}}\nHeaders:\n  Content-Type: application/json\n\nQuery Parameters (opcionales):\n  serviceName: string (filtro por nombre)\n  page: 0\n  size: 20\n\nResponse esperado:\n{\n  \"content\": [\n    {\n      \"id\": \"uuid\",\n      \"name\": \"Cardiología\",\n      \"code\": \"CARDIO\",\n      \"picture\": \"url\",\n      \"normalAppointmentPrice\": 75.00,\n      \"estimatedDuration\": 30,\n      \"description\": \"Consulta especializada del corazón\"\n    }\n  ],\n  \"totalElements\": 10,\n  \"totalPages\": 1\n}\n```\n\n#### 2. Obtener Doctores por Especialidad\n\n```\nMétodo: GET\nURL: {{CALENDAR_API_BASE_URL}}/api/resource/business/{{BUSINESS_ID}}/services/{{SERVICE_ID}}\nHeaders:\n  Content-Type: application/json\n\nResponse esperado:\n{\n  \"content\": [\n    {\n      \"id\": \"uuid\",\n      \"name\": \"Dr. María González\",\n      \"email\": \"maria@hospital.com\",\n      \"phone\": \"+593987654321\",\n      \"image\": \"url-foto\"\n    }\n  ]\n}\n```\n\n#### 3. Obtener Doctores con Disponibilidad (Alternativa)\n\n```\nMétodo: POST\nURL: {{CALENDAR_API_BASE_URL}}/api/resource/available\nHeaders:\n  Content-Type: application/json\n\nBody:\n{\n  \"date\": \"2026-01-20\",\n  \"serviceId\": \"{{SERVICE_ID}}\",\n  \"businessId\": \"{{BUSINESS_ID}}\",\n  \"page\": 0,\n  \"pageSize\": 10\n}\n\nResponse esperado:\n{\n  \"content\": [\n    {\n      \"id\": \"uuid\",\n      \"name\": \"Dr. María González\",\n      \"availableSlots\": 5\n    }\n  ]\n}\n```\n\n\n}\n```\n\n## FLUJO DE N8N RECOMENDADO\n\n### Workflow Principal\n\n```\n[Webhook/Chat Trigger]\n        ↓\n[AI Agent Node - Claude/GPT]\n   (Con el prompt del asistente)\n        ↓\n[Tool: Obtener Servicios]\n        ↓\n[Tool: Obtener Doctores]\n        ↓\n[Tool: Obtener Disponibilidad]\n        ↓\n[Tool: Crear Cita]\n        ↓\n[Tool: Enviar Confirmación WhatsApp]\n        ↓\n[Response al Usuario]\n```\n\n\n// Tool 1: obtener_especialidades\n\n\n// Tool 2: obtener_doctores\n\n// Tool 3: obtener_fechas_disponibles\n\n\n// Tool 4: obtener_horarios_doctor\n\n// Tool 5: crear_cita\n\n\n// Tool 6: enviar_recordatorio\n\n---\n\n## MAPEO DE SÍNTOMAS A ESPECIALIDADES\n\nPara ayudar al asistente a recomendar especialidades basándose en síntomas:\n\n```json\n{\n  \"mapeo_sintomas\": {\n    \"dolor de pecho|palpitaciones|presión arterial|corazón\": \"Cardiología\",\n    \"dolor de cabeza|migraña|mareos|convulsiones\": \"Neurología\",\n    \"dolor de estómago|gastritis|reflujo|digestión\": \"Gastroenterología\",\n    \"dolor de huesos|articulaciones|espalda|columna\": \"Traumatología\",\n    \"problemas de piel|acné|manchas|dermatitis\": \"Dermatología\",\n    \"problemas de visión|ojos|vista borrosa\": \"Oftalmología\",\n    \"dolor de oído|audición|vértigo\": \"Otorrinolaringología\",\n    \"problemas respiratorios|tos|asma|neumonía\": \"Neumología\",\n    \"diabetes|tiroides|hormonas|metabolismo\": \"Endocrinología\",\n    \"riñones|orina|próstata|vejiga\": \"Urología\",\n    \"embarazo|menstruación|ginecología\": \"Ginecología\",\n    \"niños|pediatría|vacunas infantiles\": \"Pediatría\",\n    \"salud mental|ansiedad|depresión|estrés\": \"Psicología/Psiquiatría\",\n    \"chequeo general|revisión|control\": \"Medicina General\"\n  }\n}\n```\n\n---\n\n## ESTADOS DE CITA (RECEIPT STATUS)\n\n| Estado | Descripción | Uso |\n|--------|-------------|-----|\n| PRE_RESERVE | Reserva preliminar sin pago | Estado inicial al crear cita |\n| CONFIRMED | Cita confirmada con pago | Después de confirmar pago |\n| PENDING_PAY | Pendiente de pago | Cuando requiere pago |\n| ATTENDED | Paciente asistió | Post-consulta |\n| CANCEL | Cita cancelada | Usuario o sistema cancela |\n| REJECTED | Cita rechazada | Rechazada por el sistema |\n| ATTENDANCE_CONFIRMED | Paciente confirmó asistencia | Confirmación previa |\n\n---\n\n## EJEMPLO DE CONVERSACIÓN COMPLETA\n\n```\n🤖 Asistente: ¡Hola! Soy tu asistente de MEDINEC. Estoy aquí para ayudarte a agendar una cita médica. Para comenzar, ¿podrías proporcionarme tu nombre completo?\n\n👤 Usuario: María García\n\n🤖 Asistente: ¡Mucho gusto, María! Ahora necesito tu número de cédula para identificarte en nuestro sistema.\n\n👤 Usuario: 0912345678\n\n🤖 Asistente: Perfecto, María. ¿Y cuál es tu número de teléfono para contactarte?\n\n👤 Usuario: 0987654321\n\n🤖 Asistente: Excelente. Ahora dime, ¿tienes algún especialista en mente o prefieres que te ayude a encontrar uno según tus necesidades?\n\n👤 Usuario: No tengo uno en mente, me duele mucho la espalda\n\n🤖 Asistente: Entiendo que tienes dolor de espalda. Para ese tipo de molestias, te recomiendo una consulta con un especialista en Traumatología.\n\nTenemos disponibles los siguientes doctores:\n1. 👨‍⚕️ Dr. Carlos Mendoza - 10 años de experiencia\n2. 👩‍⚕️ Dra. Ana Ruiz - 8 años de experiencia\n3. 👨‍⚕️ Dr. Pedro Sánchez - 15 años de experiencia\n\n¿Te gustaría elegir uno o prefieres que te asigne uno automáticamente?\n\n👤 Usuario: El Dr. Carlos Mendoza\n\n🤖 Asistente: Perfecto, Dr. Carlos Mendoza. ¿Tienes alguna preferencia de fecha? Por ejemplo, ¿buscas algo para esta semana o tienes flexibilidad?\n\n👤 Usuario: Para esta semana si es posible\n\n🤖 Asistente: El Dr. Mendoza tiene disponibilidad en estas fechas:\n\n📅 Miércoles 22 de enero:\n   • 9:00 AM\n   • 11:30 AM\n   • 3:00 PM\n\n📅 Viernes 24 de enero:\n   • 8:30 AM\n   • 10:00 AM\n   • 2:30 PM\n\n¿Cuál horario te funciona mejor?\n\n👤 Usuario: El miércoles a las 9\n\n🤖 Asistente: Excelente elección. Brevemente, ¿cuál es el motivo principal de tu consulta? (Por ejemplo: dolor lumbar, lesión, etc.)\n\n👤 Usuario: Dolor en la parte baja de la espalda desde hace 2 semanas\n\n🤖 Asistente: Entendido. Por último, ¿prefieres una consulta presencial o virtual por videollamada?\n\n👤 Usuario: Presencial\n\n🤖 Asistente: Perfecto. Déjame confirmar los datos de tu cita:\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n📋 **RESUMEN DE TU CITA**\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n👤 Paciente: María García (0912345678)\n📞 Teléfono: 0987654321\n🏥 Especialidad: Traumatología\n👨‍⚕️ Doctor: Dr. Carlos Mendoza\n📅 Fecha: Miércoles, 22 de enero de 2026\n⏰ Hora: 9:00 AM\n📍 Modalidad: Presencial\n📝 Motivo: Dolor en la parte baja de la espalda desde hace 2 semanas\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n¿Es correcta esta información? Responde \"Sí\" para confirmar tu cita.\n\n👤 Usuario: Sí\n\n🤖 Asistente: ¡Tu cita ha sido agendada exitosamente! 🎉\n\n📌 **Número de confirmación:** RCP-2026012209001\n\nTe hemos enviado un mensaje de confirmación a tu WhatsApp. Recibirás un recordatorio 24 horas antes de tu cita.\n\n**Recuerda:**\n• Llegar 15 minutos antes de tu cita\n• Traer tu cédula de identidad\n• Traer cualquier examen o imagen reciente relacionada\n\n¿Hay algo más en lo que pueda ayudarte?\n```\n\n---\n\n## NOTAS DE IMPLEMENTACIÓN\n\n1. **Business ID**: Debes configurar el UUID de la clínica/negocio en las variables de entorno\n2. **Fechas**: Siempre usar formato ISO (YYYY-MM-DD) para las fechas\n3. **Horas**: Usar formato 24h (HH:mm:ss)\n4. **Pacientes nuevos**: Usar el endpoint `/api/receipt/anima-integration` que crea el paciente automáticamente\n5. **Errores**: Siempre manejar los códigos de error (617, 610, 1006) con mensajes amigables\n6. **Stock**: Verificar que el horario tenga `stock > 0` antes de mostrar como disponible\n7. **WhatsApp**: El recordatorio se envía automáticamente, pero puede invocarse manualmente\n\n---\n\n## CÓDIGOS DE ERROR COMUNES\n\n| Código | Mensaje | Acción Sugerida |\n|--------|---------|-----------------|\n| 617 | Schedule not available | Ofrecer otros horarios |\n| 617 | No available slots | Buscar en otras fechas |\n| 610 | Cannot book past dates | Validar fecha antes de enviar |\n| 1006 | Patient already has booking | Informar y ofrecer ver/modificar cita existente |\n\n---"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        -352,
+        -240
+      ],
+      "id": "9fb45fce-cc4d-401f-b92f-0804be7857cd",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-3.5-turbo-1106",
+          "mode": "list",
+          "cachedResultName": "gpt-3.5-turbo-1106"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        -592,
+        80
+      ],
+      "id": "dce8b3c3-42ae-4615-8c03-2cff50824391",
+      "name": "OpenAI Chat Model",
+      "credentials": {
+        "openAiApi": {
+          "id": "wLpMuXGfvIEudfkX",
+          "name": "Keimer OpenAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        -352,
+        80
+      ],
+      "id": "4cff267f-5269-4665-a0d3-e41570a29b9f",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "url": "=/calendar/api/schedules/geo/search-services-by-business/560394b5-79d3-4e95-b6b4-1c6dbf2f039d",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        256,
+        -80
+      ],
+      "id": "1f4a334b-957a-431f-ae30-d60b02263ecb",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "url": "={{ _['backend-doctorkyn'] }}/calendar/api/schedules/geo/search-services-by-business/560394b5-79d3-4e95-b6b4-1c6dbf2f039d",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        448,
+        -80
+      ],
+      "id": "d26659ba-2bab-45f1-98e6-5de598dc5703",
+      "name": "HTTP Request1"
+    },
+    {
+      "parameters": {
+        "url": "={{ _['backend-doctorkyn'] }}/calendar/api/schedules/geo/search-services-by-business/560394b5-79d3-4e95-b6b4-1c6dbf2f039d",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        640,
+        -96
+      ],
+      "id": "e5043ef8-5697-4b38-abab-214e517c571e",
+      "name": "HTTP Request3"
+    },
+    {
+      "parameters": {
+        "url": "={{ _['backend-doctorkyn'] }}/calendar/api/schedules/geo/search-services-by-business/560394b5-79d3-4e95-b6b4-1c6dbf2f039d",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        272,
+        80
+      ],
+      "id": "fbff8fdc-aebe-4148-b943-aae451ea33f8",
+      "name": "HTTP Request4"
+    },
+    {
+      "parameters": {
+        "url": "={{ _['backend-doctorkyn'] }}/calendar/api/schedules/geo/search-services-by-business/560394b5-79d3-4e95-b6b4-1c6dbf2f039d",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        416,
+        80
+      ],
+      "id": "89109b53-b0a2-4156-99cc-e71545469b2e",
+      "name": "HTTP Request5"
+    },
+    {
+      "parameters": {
+        "url": "={{ _['backend-doctorkyn'] }}/calendar/api/schedules/geo/search-services-by-business/560394b5-79d3-4e95-b6b4-1c6dbf2f039d",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        640,
+        80
+      ],
+      "id": "2b929d97-5927-454e-bf8a-e6faf0962ce0",
+      "name": "HTTP Request6"
+    },
+    {
+      "parameters": {
+        "url": "={{ _['backend-doctorkyn'] }}/calendar/api/schedules/geo/search-services-by-business/560394b5-79d3-4e95-b6b4-1c6dbf2f039d",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        816,
+        -96
+      ],
+      "id": "ce6170ad-7a0a-4cd6-9bb4-3cf2e7986865",
+      "name": "HTTP Request7"
+    },
+    {
+      "parameters": {
+        "content": "",
+        "height": 544,
+        "width": 800,
+        "color": 6
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        176,
+        -288
+      ],
+      "typeVersion": 1,
+      "id": "2c601c58-f6cc-4320-a0f3-ddcb3022a114",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "toolDescription": "This Tools is to get the services of an specific business determine by id in a range of Dates.\nUser can provide the Range of date but if not:\nstartDate = Today Date\nendDate = Today Date + 30 dais\nbusinessId = Should be determine by the previous selection of the user.",
+        "method": "POST",
+        "url": "=https://doctorkyn-dev-api.kynsoft.net/calendar/api/schedules/geo/search-services-by-business/{{businessId}}?",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "=startDate",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters0_Value', `User can provide a range of date:\ntale the lower date as startDate\nif not:\nstartDate = Today Date`, 'string') }}"
+            },
+            {
+              "name": "endDate",
+              "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('parameters1_Value', `User can provide a range of date:\ntale the upper date as endDate\nif not:\nendDate = startDate plus 30 days`, 'string') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        672,
+        -256
+      ],
+      "id": "3b703118-5cbd-4c7c-ad21-2a02a26e932d",
+      "name": "getServicesxBusiness"
+    },
+    {
+      "parameters": {
+        "toolDescription": "This Tools is to get the available business in a range of Dates and specialty. When you request the list of services always have to use a range of date of about a month.",
+        "method": "POST",
+        "url": "https://doctorkyn-dev-api.kynsoft.net/calendar/api/schedules/geo/search-businesses",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n\t\"startDate\": \"2026-01-15\",\n\t\"endDate\": \"2026-02-14\",\n    \"specialtyId\": \"aab1faf4-3c9d-4e44-8a70-76ec05cfa66b\",\n\t\"page\": 0,\n\t\"pageSize\": 20,\n\t\"sortBy\": \"NAME\",\n\t\"sortDirection\": \"ASC\"\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text",
+              "outputPropertyName": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Put_Output_in_Field', ``, 'string') }}"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        448,
+        -256
+      ],
+      "id": "e3fe221f-cf1c-4a97-8f61-3fee9a90102b",
+      "name": "getBusinessXSpecialty"
+    },
+    {
+      "parameters": {
+        "toolDescription": "This Tools is to get the available business in a range of Dates. When you request the list of services always have to use a range of date of about a month.",
+        "method": "POST",
+        "url": "https://doctorkyn-dev-api.kynsoft.net/calendar/api/schedules/geo/search-businesses",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{\n\t\"startDate\": \"2026-01-15\",\n\t\"endDate\": \"2026-02-14\",\n\t\"page\": 0,\n\t\"pageSize\": 20,\n\t\"sortBy\": \"NAME\",\n\t\"sortDirection\": \"ASC\"\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "text",
+              "outputPropertyName": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Put_Output_in_Field', ``, 'string') }}"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.3,
+      "position": [
+        256,
+        -256
+      ],
+      "id": "b0981702-1b11-430d-baa4-70777d8b792f",
+      "name": "getBusiness"
+    }
+  ],
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request4": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request5": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request6": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request3": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request7": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "getServicesxBusiness": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "getBusinessXSpecialty": {
+      "ai_tool": [
+        []
+      ]
+    },
+    "getBusiness": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {},
+  "versionId": "da6fc4f4-b2c2-40c1-b644-6422ebf67725",
+  "activeVersionId": null,
+  "versionCounter": 21,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-01-16T22:51:11.093Z",
+      "createdAt": "2026-01-16T22:51:11.093Z",
+      "role": "workflow:owner",
+      "workflowId": "JA9pl4d0vJgBEHoykZXdO",
+      "projectId": "MfE3ZI64e0dGnFAj",
+      "project": {
+        "updatedAt": "2026-01-16T22:34:26.630Z",
+        "createdAt": "2026-01-16T18:34:08.899Z",
+        "id": "MfE3ZI64e0dGnFAj",
+        "name": "Keimer Montes <keimermo1989@gmiail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "5963f460-3684-486d-8f21-cefca0d4b976",
+        "projectRelations": [
+          {
+            "updatedAt": "2026-01-16T18:34:08.899Z",
+            "createdAt": "2026-01-16T18:34:08.899Z",
+            "userId": "5963f460-3684-486d-8f21-cefca0d4b976",
+            "projectId": "MfE3ZI64e0dGnFAj",
+            "user": {
+              "updatedAt": "2026-01-19T05:06:10.101Z",
+              "createdAt": "2026-01-16T18:34:08.542Z",
+              "id": "5963f460-3684-486d-8f21-cefca0d4b976",
+              "email": "keimermo1989@gmiail.com",
+              "firstName": "Keimer",
+              "lastName": "Montes",
+              "personalizationAnswers": {
+                "version": "v4",
+                "personalization_survey_submitted_at": "2026-01-16T22:37:37.225Z",
+                "personalization_survey_n8n_version": "2.3.4",
+                "automationGoalDevops": [
+                  "cloud-infrastructure-orchestration"
+                ],
+                "companySize": "<20",
+                "companyType": "systems-integrator",
+                "role": "engineering",
+                "reportedSource": "youtube"
+              },
+              "settings": {
+                "userActivated": false,
+                "easyAIWorkflowOnboarded": true
+              },
+              "disabled": false,
+              "mfaEnabled": false,
+              "lastActiveAt": "2026-01-19",
+              "isPending": false
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": null
+}

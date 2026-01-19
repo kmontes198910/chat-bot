@@ -1,0 +1,49 @@
+services:
+  n8n-mcp:
+    image: ghcr.io/czlonkowski/n8n-mcp:latest
+    container_name: n8n-mcp
+    restart: unless-stopped
+    environment:
+      # MCP Configuration - HTTP mode for health checks
+      - MCP_MODE=http
+      - MCP_PORT=3000
+      - LOG_LEVEL=error
+      - AUTH_TOKEN=${MCP_AUTH_TOKEN:-n8n-mcp-local-token}
+
+      # n8n API Configuration
+      - N8N_API_URL=https://n8n.kynsoft.net
+      - N8N_API_KEY=${N8N_API_KEY}
+
+      # Optional: Disable telemetry
+      - N8N_MCP_TELEMETRY_DISABLED=true
+
+      # Optional: For local n8n development
+      # - N8N_API_URL=http://host.docker.internal:5678
+      # - WEBHOOK_SECURITY_MODE=moderate
+
+    # Expose port for HTTP mode
+    ports:
+      - "3000:3000"
+
+    # Health check for HTTP mode
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+    # Optional: Mount volume for persistence (SQLite database)
+    volumes:
+      - n8n-mcp-data:/app/data
+
+    networks:
+      - n8n-mcp-network
+
+volumes:
+  n8n-mcp-data:
+    driver: local
+
+networks:
+  n8n-mcp-network:
+    driver: bridge
