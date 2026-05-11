@@ -1,0 +1,1062 @@
+{
+  "updatedAt": "2026-05-11T15:30:20.355Z",
+  "createdAt": "2026-04-08T00:37:32.355Z",
+  "id": "vK1LMd6ZtPKAW4hb",
+  "name": "DoctorKyn - STT WhatsApp",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "a0b1c2d3-e4f5-4a6b-7c8d-9e0f1a2b3c4d"
+    },
+    {
+      "parameters": {
+        "url": "=https://graph.facebook.com/v21.0/{{ $json.audioId }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "whatsAppApi",
+        "options": {}
+      },
+      "name": "Get Media URL",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        192,
+        0
+      ],
+      "id": "b1c2d3e4-f5a6-4b7c-8d9e-0f1a2b3c4d5e",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "0b2IOSWhlooEpqM9",
+          "name": "WhatsApp Business account ID API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "={{ $json.url }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "whatsAppApi",
+        "options": {}
+      },
+      "name": "Download Audio",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        384,
+        0
+      ],
+      "id": "c2d3e4f5-a6b7-4c8d-9e0f-1a2b3c4d5e6f",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "0b2IOSWhlooEpqM9",
+          "name": "WhatsApp Business account ID API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/audio/transcriptions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "groqApi",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "file",
+              "inputDataFieldName": "data"
+            },
+            {
+              "name": "model",
+              "value": "whisper-large-v3-turbo"
+            },
+            {
+              "name": "language",
+              "value": "es"
+            },
+            {
+              "name": "response_format",
+              "value": "json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Groq STT",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        576,
+        0
+      ],
+      "id": "d3e4f5a6-b7c8-4d9e-0f1a-2b3c4d5e6f7a",
+      "credentials": {
+        "groqApi": {
+          "id": "yznAgs6pTIXvT2f0",
+          "name": "Groq Keimer"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "e4f5a6b7-c8d9-4e0f-1a2b-3c4d5e6f7a8b",
+              "leftValue": "={{ $json.text }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "IF Groq OK",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        768,
+        0
+      ],
+      "id": "e4f5a6b7-c8d9-4e0f-1a2b-3c4d5e6f7a8b"
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Get Media URL').item.json.url }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "whatsAppApi",
+        "options": {}
+      },
+      "name": "Download Audio (EL)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        960,
+        0
+      ],
+      "id": "f5a6b7c8-d9e0-4f1a-2b3c-4d5e6f7a8b9c",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "0b2IOSWhlooEpqM9",
+          "name": "WhatsApp Business account ID API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.elevenlabs.io/v1/speech-to-text",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "parameterType": "formBinaryData",
+              "name": "audio",
+              "inputDataFieldName": "data"
+            },
+            {
+              "name": "model_id",
+              "value": "scribe_v1"
+            },
+            {
+              "name": "language_code",
+              "value": "es"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "ElevenLabs STT",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1152,
+        0
+      ],
+      "id": "a6b7c8d9-e0f1-4a2b-3c4d-5e6f7a8b9c0d",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "c5uLORHRjarfB8VS",
+          "name": "IIElevenLabs API"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "b7c8d9e0-f1a2-4b3c-4d5e-6f7a8b9c0d1e",
+              "leftValue": "={{ $json.text }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "IF ElevenLabs OK",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1344,
+        0
+      ],
+      "id": "b7c8d9e0-f1a2-4b3c-4d5e-6f7a8b9c0d1e"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "541998385660923",
+        "recipientPhoneNumber": "={{ $('Execute Workflow Trigger').item.json.wa_id }}",
+        "textBody": "Por favor, ¿puedes escribir tu mensaje? No pude procesar el audio. 🙏",
+        "additionalFields": {}
+      },
+      "name": "STT Fail Reply",
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [
+        1536,
+        0
+      ],
+      "id": "c8d9e0f1-a2b3-4c4d-5e6f-7a8b9c0d1e2f",
+      "webhookId": "ff112233-4455-6677-8899-aabbccddeeff",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "0b2IOSWhlooEpqM9",
+          "name": "WhatsApp Business account ID API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{ json: { transcription: '' } }];"
+      },
+      "name": "Return Empty",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1728,
+        0
+      ],
+      "id": "d9e0f1a2-b3c4-4d5e-6f7a-8b9c0d1e2f3a"
+    },
+    {
+      "parameters": {
+        "jsCode": "const transcription = ($json.text || '').trim();\nreturn [{ json: { transcription } }];"
+      },
+      "name": "Return Transcription",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1728,
+        -192
+      ],
+      "id": "e0f1a2b3-c4d5-4e6f-7a8b-9c0d1e2f3a4b"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Valida calidad de la transcripción — descarta ruido / artefactos de Whisper\nconst text = ($json.text || '').trim();\n// Whisper emite [BLANK_AUDIO], [música], [RUIDO], [silencio], etc. cuando no hay habla clara\nconst isArtifact = /^\\[.+\\]$/.test(text);\n// Mínimo 2 palabras reales con al menos 2 caracteres cada una\nconst words = text.split(/\\s+/).filter(w => w.length >= 2);\nconst isValid = text.length >= 5 && !isArtifact && words.length >= 2;\nreturn [{ json: { text, isValid } }];"
+      },
+      "id": "d1818b97-4d6d-4b29-b6b6-f887aaf93283",
+      "name": "Validate Transcription",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1152,
+        -192
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "0dad8b6b-bd9e-4bb4-9c2c-68889dd33b47",
+              "leftValue": "={{ $json.isValid }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "17b5267c-ed98-4816-8e96-07bd5c83eccf",
+      "name": "IF Transcription Valid",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        1344,
+        -192
+      ]
+    }
+  ],
+  "connections": {
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get Media URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Media URL": {
+      "main": [
+        [
+          {
+            "node": "Download Audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Audio": {
+      "main": [
+        [
+          {
+            "node": "Groq STT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq STT": {
+      "main": [
+        [
+          {
+            "node": "IF Groq OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Groq OK": {
+      "main": [
+        [
+          {
+            "node": "Validate Transcription",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Download Audio (EL)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Audio (EL)": {
+      "main": [
+        [
+          {
+            "node": "ElevenLabs STT",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ElevenLabs STT": {
+      "main": [
+        [
+          {
+            "node": "IF ElevenLabs OK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF ElevenLabs OK": {
+      "main": [
+        [
+          {
+            "node": "Validate Transcription",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "STT Fail Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "STT Fail Reply": {
+      "main": [
+        [
+          {
+            "node": "Return Empty",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Transcription": {
+      "main": [
+        [
+          {
+            "node": "IF Transcription Valid",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Transcription Valid": {
+      "main": [
+        [
+          {
+            "node": "Return Transcription",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "STT Fail Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "binaryMode": "separate"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "8ebb9cb2-ca62-4dd4-a78f-d6b72805fc7d",
+  "activeVersionId": "9c525aae-c9cf-4231-ab43-f83d7d9cc125",
+  "versionCounter": 27,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-04-08T00:37:32.355Z",
+      "createdAt": "2026-04-08T00:37:32.355Z",
+      "role": "workflow:owner",
+      "workflowId": "vK1LMd6ZtPKAW4hb",
+      "projectId": "MfE3ZI64e0dGnFAj",
+      "project": {
+        "updatedAt": "2026-04-03T12:29:07.342Z",
+        "createdAt": "2026-01-16T18:34:08.899Z",
+        "id": "MfE3ZI64e0dGnFAj",
+        "name": "Keimer Montes Oliver <keimermo1989@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "5963f460-3684-486d-8f21-cefca0d4b976"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-04-08T01:09:08.124Z",
+    "createdAt": "2026-04-08T01:09:08.124Z",
+    "versionId": "9c525aae-c9cf-4231-ab43-f83d7d9cc125",
+    "workflowId": "vK1LMd6ZtPKAW4hb",
+    "nodes": [
+      {
+        "parameters": {},
+        "name": "Execute Workflow Trigger",
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1,
+        "position": [
+          0,
+          0
+        ],
+        "id": "a0b1c2d3-e4f5-4a6b-7c8d-9e0f1a2b3c4d"
+      },
+      {
+        "parameters": {
+          "method": "GET",
+          "url": "=https://graph.facebook.com/v21.0/{{ $json.audioId }}",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "whatsAppApi",
+          "options": {}
+        },
+        "name": "Get Media URL",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          192,
+          0
+        ],
+        "id": "b1c2d3e4-f5a6-4b7c-8d9e-0f1a2b3c4d5e",
+        "credentials": {
+          "whatsAppApi": {
+            "id": "0b2IOSWhlooEpqM9",
+            "name": "WhatsApp Business account ID API"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "method": "GET",
+          "url": "={{ $json.url }}",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "whatsAppApi",
+          "responseFormat": "file",
+          "options": {}
+        },
+        "name": "Download Audio",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          384,
+          0
+        ],
+        "id": "c2d3e4f5-a6b7-4c8d-9e0f-1a2b3c4d5e6f",
+        "credentials": {
+          "whatsAppApi": {
+            "id": "0b2IOSWhlooEpqM9",
+            "name": "WhatsApp Business account ID API"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.groq.com/openai/v1/audio/transcriptions",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "groqApi",
+          "sendBody": true,
+          "contentType": "multipart-form-data",
+          "bodyParameters": {
+            "parameters": [
+              {
+                "parameterType": "formBinaryData",
+                "name": "file",
+                "inputDataFieldName": "data"
+              },
+              {
+                "parameterType": "formData",
+                "name": "model",
+                "value": "whisper-large-v3-turbo"
+              },
+              {
+                "parameterType": "formData",
+                "name": "language",
+                "value": "es"
+              },
+              {
+                "parameterType": "formData",
+                "name": "response_format",
+                "value": "json"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "name": "Groq STT",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          576,
+          0
+        ],
+        "continueOnFail": true,
+        "id": "d3e4f5a6-b7c8-4d9e-0f1a-2b3c4d5e6f7a",
+        "credentials": {
+          "groqApi": {
+            "id": "yznAgs6pTIXvT2f0",
+            "name": "Groq Keimer"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict"
+            },
+            "conditions": [
+              {
+                "id": "e4f5a6b7-c8d9-4e0f-1a2b-3c4d5e6f7a8b",
+                "leftValue": "={{ $json.text }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "name": "IF Groq OK",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          768,
+          0
+        ],
+        "id": "e4f5a6b7-c8d9-4e0f-1a2b-3c4d5e6f7a8b"
+      },
+      {
+        "parameters": {
+          "method": "GET",
+          "url": "={{ $('Get Media URL').item.json.url }}",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "whatsAppApi",
+          "responseFormat": "file",
+          "options": {}
+        },
+        "name": "Download Audio (EL)",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          960,
+          0
+        ],
+        "id": "f5a6b7c8-d9e0-4f1a-2b3c-4d5e6f7a8b9c",
+        "credentials": {
+          "whatsAppApi": {
+            "id": "0b2IOSWhlooEpqM9",
+            "name": "WhatsApp Business account ID API"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.elevenlabs.io/v1/speech-to-text",
+          "authentication": "genericCredentialType",
+          "genericAuthType": "httpHeaderAuth",
+          "sendBody": true,
+          "contentType": "multipart-form-data",
+          "bodyParameters": {
+            "parameters": [
+              {
+                "parameterType": "formBinaryData",
+                "name": "audio",
+                "inputDataFieldName": "data"
+              },
+              {
+                "parameterType": "formData",
+                "name": "model_id",
+                "value": "scribe_v1"
+              },
+              {
+                "parameterType": "formData",
+                "name": "language_code",
+                "value": "es"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "name": "ElevenLabs STT",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          1152,
+          0
+        ],
+        "continueOnFail": true,
+        "id": "a6b7c8d9-e0f1-4a2b-3c4d-5e6f7a8b9c0d",
+        "credentials": {
+          "httpHeaderAuth": {
+            "id": "c5uLORHRjarfB8VS",
+            "name": "IIElevenLabs API"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict"
+            },
+            "conditions": [
+              {
+                "id": "b7c8d9e0-f1a2-4b3c-4d5e-6f7a8b9c0d1e",
+                "leftValue": "={{ $json.text }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "name": "IF ElevenLabs OK",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          1344,
+          0
+        ],
+        "id": "b7c8d9e0-f1a2-4b3c-4d5e-6f7a8b9c0d1e"
+      },
+      {
+        "parameters": {
+          "operation": "send",
+          "phoneNumberId": "541998385660923",
+          "recipientPhoneNumber": "={{ $('Execute Workflow Trigger').item.json.wa_id }}",
+          "textBody": "Por favor, ¿puedes escribir tu mensaje? No pude procesar el audio. 🙏",
+          "additionalFields": {}
+        },
+        "name": "STT Fail Reply",
+        "type": "n8n-nodes-base.whatsApp",
+        "typeVersion": 1,
+        "position": [
+          1536,
+          0
+        ],
+        "id": "c8d9e0f1-a2b3-4c4d-5e6f-7a8b9c0d1e2f",
+        "webhookId": "ff112233-4455-6677-8899-aabbccddeeff",
+        "credentials": {
+          "whatsAppApi": {
+            "id": "0b2IOSWhlooEpqM9",
+            "name": "WhatsApp Business account ID API"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "jsCode": "return [{ json: { transcription: '' } }];"
+        },
+        "name": "Return Empty",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1728,
+          0
+        ],
+        "id": "d9e0f1a2-b3c4-4d5e-6f7a-8b9c0d1e2f3a"
+      },
+      {
+        "parameters": {
+          "jsCode": "const transcription = ($json.text || '').trim();\nreturn [{ json: { transcription } }];"
+        },
+        "name": "Return Transcription",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1728,
+          -192
+        ],
+        "id": "e0f1a2b3-c4d5-4e6f-7a8b-9c0d1e2f3a4b"
+      },
+      {
+        "parameters": {
+          "jsCode": "// Valida calidad de la transcripción — descarta ruido / artefactos de Whisper\nconst text = ($json.text || '').trim();\n// Whisper emite [BLANK_AUDIO], [música], [RUIDO], [silencio], etc. cuando no hay habla clara\nconst isArtifact = /^\\[.+\\]$/.test(text);\n// Mínimo 2 palabras reales con al menos 2 caracteres cada una\nconst words = text.split(/\\s+/).filter(w => w.length >= 2);\nconst isValid = text.length >= 5 && !isArtifact && words.length >= 2;\nreturn [{ json: { text, isValid } }];"
+        },
+        "id": "d1818b97-4d6d-4b29-b6b6-f887aaf93283",
+        "name": "Validate Transcription",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1152,
+          -192
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict"
+            },
+            "conditions": [
+              {
+                "id": "0dad8b6b-bd9e-4bb4-9c2c-68889dd33b47",
+                "leftValue": "={{ $json.isValid }}",
+                "rightValue": true,
+                "operator": {
+                  "type": "boolean",
+                  "operation": "true",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "17b5267c-ed98-4816-8e96-07bd5c83eccf",
+        "name": "IF Transcription Valid",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2,
+        "position": [
+          1440,
+          -192
+        ]
+      }
+    ],
+    "connections": {
+      "Execute Workflow Trigger": {
+        "main": [
+          [
+            {
+              "node": "Get Media URL",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Get Media URL": {
+        "main": [
+          [
+            {
+              "node": "Download Audio",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Download Audio": {
+        "main": [
+          [
+            {
+              "node": "Groq STT",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Groq STT": {
+        "main": [
+          [
+            {
+              "node": "IF Groq OK",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF Groq OK": {
+        "main": [
+          [
+            {
+              "node": "Validate Transcription",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Download Audio (EL)",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Download Audio (EL)": {
+        "main": [
+          [
+            {
+              "node": "ElevenLabs STT",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "ElevenLabs STT": {
+        "main": [
+          [
+            {
+              "node": "IF ElevenLabs OK",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF ElevenLabs OK": {
+        "main": [
+          [
+            {
+              "node": "Validate Transcription",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "STT Fail Reply",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "STT Fail Reply": {
+        "main": [
+          [
+            {
+              "node": "Return Empty",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Validate Transcription": {
+        "main": [
+          [
+            {
+              "node": "IF Transcription Valid",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF Transcription Valid": {
+        "main": [
+          [
+            {
+              "node": "Return Transcription",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "STT Fail Reply",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Keimer Montes Oliver",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-04-08T01:09:08.331Z",
+        "id": 160,
+        "workflowId": "vK1LMd6ZtPKAW4hb",
+        "versionId": "9c525aae-c9cf-4231-ab43-f83d7d9cc125",
+        "event": "deactivated",
+        "userId": "5963f460-3684-486d-8f21-cefca0d4b976"
+      },
+      {
+        "createdAt": "2026-04-08T01:09:08.341Z",
+        "id": 161,
+        "workflowId": "vK1LMd6ZtPKAW4hb",
+        "versionId": "9c525aae-c9cf-4231-ab43-f83d7d9cc125",
+        "event": "activated",
+        "userId": "5963f460-3684-486d-8f21-cefca0d4b976"
+      },
+      {
+        "createdAt": "2026-04-08T01:09:08.654Z",
+        "id": 162,
+        "workflowId": "vK1LMd6ZtPKAW4hb",
+        "versionId": "9c525aae-c9cf-4231-ab43-f83d7d9cc125",
+        "event": "deactivated",
+        "userId": "5963f460-3684-486d-8f21-cefca0d4b976"
+      },
+      {
+        "createdAt": "2026-04-08T01:09:08.667Z",
+        "id": 163,
+        "workflowId": "vK1LMd6ZtPKAW4hb",
+        "versionId": "9c525aae-c9cf-4231-ab43-f83d7d9cc125",
+        "event": "activated",
+        "userId": "5963f460-3684-486d-8f21-cefca0d4b976"
+      },
+      {
+        "createdAt": "2026-04-08T01:11:17.065Z",
+        "id": 164,
+        "workflowId": "vK1LMd6ZtPKAW4hb",
+        "versionId": "9c525aae-c9cf-4231-ab43-f83d7d9cc125",
+        "event": "deactivated",
+        "userId": "5963f460-3684-486d-8f21-cefca0d4b976"
+      },
+      {
+        "createdAt": "2026-04-08T01:11:17.136Z",
+        "id": 165,
+        "workflowId": "vK1LMd6ZtPKAW4hb",
+        "versionId": "9c525aae-c9cf-4231-ab43-f83d7d9cc125",
+        "event": "activated",
+        "userId": "5963f460-3684-486d-8f21-cefca0d4b976"
+      }
+    ]
+  }
+}

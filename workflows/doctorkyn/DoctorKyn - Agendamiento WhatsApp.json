@@ -1,0 +1,1879 @@
+{
+  "updatedAt": "2026-05-11T15:30:15.869Z",
+  "createdAt": "2026-04-03T15:01:22.497Z",
+  "id": "kbWzPpbDMnz4TyA0",
+  "name": "DoctorKyn - Agendamiento WhatsApp",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4.1-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4.1-mini"
+        },
+        "options": {
+          "maxTokens": 600,
+          "temperature": 0.1
+        }
+      },
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.2,
+      "position": [
+        832,
+        224
+      ],
+      "id": "d9605e99-df11-4481-8fc3-1b5b2cf375a7",
+      "credentials": {
+        "openAiApi": {
+          "id": "wLpMuXGfvIEudfkX",
+          "name": "Keimer OpenAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.inputText }}",
+        "options": {
+          "systemMessage": "=Eres el asistente virtual de DoctorKyn para agendamiento de citas médicas por WhatsApp. Hablas en español de forma amable, concisa y profesional.\n\n## CONTEXTO\nFecha de hoy (fija para esta sesión): {{ $now.format('yyyy-MM-dd') }}\nUsá SOLO esta fecha como referencia. No inventes fechas.\n\n## HERRAMIENTAS (via MCP Client)\n\n- find_patient(identification) — busca paciente por cédula\n- get_available_services() — retorna servicios disponibles (nombres exactos)\n- get_available_clinics(serviceName?) — retorna clínicas disponibles para el servicio\n- find_nearby_clinics(latitude, longitude, serviceName?) — clínicas por distancia\n- get_available_days(clinicName, serviceName, startDate, endDate) — fechas con disponibilidad\n- get_time_slots(clinicName, serviceName, date) — horarios del día, incluye scheduleId por slot\n- get_discounts(patientCedula, clinicName) — descuentos aplicables\n- book_appointment(clinicName, serviceName, date, time, patientCedula, price) — retorna receiptId. price = precio FINAL con descuento.\n- get_appointment(receiptId) — detalles de cita\n- reschedule_appointment(receiptId, newScheduleId) — reprograma usando scheduleId de get_time_slots\n- cancel_appointment(receiptId) — cancela cita\n\nTodas las herramientas aceptan NOMBRES (no UUIDs), excepto newScheduleId en reschedule que viene de get_time_slots. NUNCA inventes UUIDs ni nombres.\n\n## FLUJO DE AGENDAMIENTO\n\n1. Pedí la cédula → find_patient(identification)\n2. Preguntá qué especialidad → SIEMPRE llamá get_available_services() y mostrá la lista numerada. Usá el NOMBRE EXACTO de la opción elegida.\n3. Preguntá en qué clínica → get_available_clinics(serviceName). Si el paciente no sabe, ofrecé compartir ubicación de WhatsApp → find_nearby_clinics.\n4. Días → get_available_days(clinicName, serviceName, startDate=hoy, endDate=hoy+30días). Usá la fecha del CONTEXTO. Mostrá máx 5 opciones.\n5. Horarios → get_time_slots(clinicName, serviceName, date=YYYY-MM-DD). Guardá el scheduleId del slot que elija.\n6. Descuentos → get_discounts(patientCedula, clinicName). Calculá precio final.\n7. Resumí (fecha, hora, precio final, doctor si fue devuelto) y pedí confirmación explícita.\n8. Con confirmación → book_appointment(clinicName, serviceName, date, time, patientCedula, price con descuento).\n9. Confirmación final → get_appointment(receiptId). Mostrá el código.\n\n## FLUJOS ALTERNATIVOS\n\n- Consultar cita: Pedí el receiptId → get_appointment(receiptId). Si no lo recuerda, indicale que está en el mensaje de confirmación.\n- Reprogramar: receiptId → get_available_days + get_time_slots → elegí slot → reschedule_appointment(receiptId, newScheduleId=scheduleId del slot).\n- Cancelar: receiptId → cancel_appointment(receiptId).\n\n## MANEJO DE ERRORES\n\n- find_patient falla → la cédula no está registrada. Pedí que se registre en DoctorKyn o contacte a la clínica.\n- book_appointment retorna \"ya tiene cita pendiente\" → informá al paciente, ofrecé ver la cita existente (get_appointment) o reprogramarla.\n- get_available_services vacío → no hay disponibilidad, sugerí contactar directamente a la clínica.\n- get_available_clinics vacío para un servicio → no hay clínicas con ese servicio, ofrecé otras especialidades.\n- Sin receiptId para cancelar/reprogramar → indicá que está en el mensaje de confirmación anterior.\n\n## REGLAS\n- NUNCA agendes sin confirmación explícita. Acepta: sí, confirmo, dale, ok, va, perfecto, claro.\n- SIEMPRE muestra precio final (con descuento) antes de reservar.\n- Mensajes cortos: máx 4 líneas. Listas: máx 5 ítems numerados.\n- Emojis moderados: 📅 🕐 ✅ 👨‍⚕️\n- Formato fechas: 'Lunes 6 de Abril', horas: '09:00'\n- No menciones nombre de doctor si no lo devolvió get_time_slots.\n- Los PRECIOS dependen de la clínica: NUNCA muestres precios de servicios sin haber identificado primero la clínica. El precio real se obtiene de get_time_slots (precio por slot) o get_discounts (precio con descuento). Si el paciente pregunta '¿cuánto cuesta?' sin haber elegido clínica, preguntale primero en qué clínica.",
+          "maxIterations": 10
+        }
+      },
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7,
+      "position": [
+        928,
+        16
+      ],
+      "id": "0b3235c8-7a78-4f5a-bbfd-5cb38c87fe99"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "=doctorkyn:n8n-dev:whatsapp:{{ $('WA Trigger').item.json.contacts[0].wa_id }}",
+        "sessionTTL": 7200,
+        "contextWindowLength": 30
+      },
+      "name": "Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
+      "typeVersion": 1.5,
+      "position": [
+        976,
+        224
+      ],
+      "id": "aaa043d9-f9ac-476c-b7fb-42e5a944fb7c",
+      "credentials": {
+        "redis": {
+          "id": "LuDTeor4M8AG2GWQ",
+          "name": "Keimer Infra Cache"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "541998385660923",
+        "recipientPhoneNumber": "={{ $('WA Trigger').item.json.contacts[0].wa_id }}",
+        "textBody": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "name": "Reply WhatsApp",
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [
+        1312,
+        -80
+      ],
+      "id": "68f14b46-2d15-48a9-bba3-57440bbfbdaa",
+      "webhookId": "27bd3093-43e1-454c-afa9-c824a5608808",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "0b2IOSWhlooEpqM9",
+          "name": "WhatsApp Business account ID API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "endpointUrl": "http://mcp-calendar-service:3100/mcp",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+      "typeVersion": 1.2,
+      "position": [
+        1152,
+        224
+      ],
+      "id": "68a42f14-dc33-40bd-be7a-d3515bb7381b",
+      "name": "MCP Client"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Filtrar solo mensajes válidos de WhatsApp (texto, ubicación o audio)\nconst data = $input.first().json;\nif (!data.contacts || !data.contacts[0]?.wa_id || !data.messages || data.messages.length === 0) {\n    return [];\n}\nconst msg = data.messages[0];\nconst type = msg?.type;\n// Aceptar mensajes de texto (mínimo 3 caracteres, máximo 1000)\nif (type === 'text' && msg.text?.body) {\n    const body = msg.text.body.trim();\n    if (body.length < 3) return []; // demasiado corto — ignorar silenciosamente\n    data.messages[0].text.body = body.substring(0, 1000);\n    return [{ json: data }];\n}\n// Aceptar mensajes de ubicación — convertir a texto para el AI Agent\nif (type === 'location' && msg.location) {\n    const lat = msg.location.latitude;\n    const lng = msg.location.longitude;\n    data.messages[0].text = { body: `Mi ubicación es: latitud ${lat}, longitud ${lng}` };\n    return [{ json: data }];\n}\n// Aceptar mensajes de audio — se transcribirán en nodos siguientes\nif (type === 'audio' && msg.audio?.id) {\n    return [{ json: data }];\n}\n// Otro tipo de mensaje (imagen, sticker, etc.) — ignorar\nreturn [];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -288,
+        -416
+      ],
+      "id": "e27fa7be-0706-4ed7-9213-ef314100687d",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "messages"
+        ],
+        "options": {}
+      },
+      "name": "WA Trigger",
+      "type": "n8n-nodes-base.whatsAppTrigger",
+      "typeVersion": 1,
+      "position": [
+        -464,
+        -416
+      ],
+      "id": "01be3536-ce6d-4a0f-8450-dd477b746925",
+      "webhookId": "875510d8-b9f9-45f9-9412-8d79c02c6b20",
+      "credentials": {
+        "whatsAppTriggerApi": {
+          "id": "KX7vcbVgBEwD30dp",
+          "name": "WhatsApp OAuth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "incr",
+        "key": "=doctorkyn:ratelimit:{{ $('WA Trigger').item.json.contacts[0].wa_id }}:{{ $now.format('yyyyMMdd-HHmm') }}"
+      },
+      "name": "Redis Rate Limit",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        576,
+        -736
+      ],
+      "id": "c3d4e5f6-a7b8-9012-cdef-345678901234",
+      "credentials": {
+        "redis": {
+          "id": "LuDTeor4M8AG2GWQ",
+          "name": "Keimer Infra Cache"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "b2c3d4e5-f6a7-8901-bcde-234567890abc",
+              "leftValue": "={{ Object.values($json)[0] }}",
+              "rightValue": 6,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "IF Rate Limited",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        816,
+        -736
+      ],
+      "id": "d4e5f6a7-b8c9-0123-defa-456789012345"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "541998385660923",
+        "recipientPhoneNumber": "={{ $('WA Trigger').item.json.contacts[0].wa_id }}",
+        "textBody": "⏳ Recibí varios mensajes tuyos muy seguidos.\n\nPara evitar errores, solo proceso *3 mensajes por minuto* por persona. Espera unos segundos y vuelve a escribirme — estaré aquí. 🙏",
+        "additionalFields": {}
+      },
+      "name": "Rate Limit Reply",
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [
+        688,
+        -336
+      ],
+      "id": "e5f6a7b8-c9d0-1234-efab-567890123456",
+      "webhookId": "ab4f3f02-3742-43eb-9b5f-85ca256b9b18",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "0b2IOSWhlooEpqM9",
+          "name": "WhatsApp Business account ID API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "f1c2d3e4-a5b6-7890-cdef-123456789abc",
+              "leftValue": "={{ $json.output }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "Check Output",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1168,
+        16
+      ],
+      "id": "f1c2d3e4-a5b6-7890-cdef-123456789abc"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "541998385660923",
+        "recipientPhoneNumber": "={{ $('WA Trigger').item.json.contacts[0].wa_id }}",
+        "textBody": "Lo sentimos, estamos teniendo dificultades técnicas. Por favor, intenta nuevamente en unos minutos. 🙏",
+        "additionalFields": {}
+      },
+      "name": "Fallback Reply WhatsApp",
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [
+        1328,
+        128
+      ],
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "webhookId": "fd4f1a96-5d47-49d9-8c1f-dcf6d33f2404",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "0b2IOSWhlooEpqM9",
+          "name": "WhatsApp Business account ID API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "aa11bb22-cc33-4d44-ee55-ff6677889900",
+              "leftValue": "={{ $('Code in JavaScript').item.json.messages[0].type }}",
+              "rightValue": "audio",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "IF Audio",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        320,
+        32
+      ],
+      "id": "aa11bb22-cc33-4d44-ee55-ff6677889900"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepara inputText para el AI Agent\n// Para texto/ubicación: lee de Code in JavaScript\n// Para audio: lee .transcription devuelto por sub-workflow STT\nconst msgType = $('Code in JavaScript').item.json.messages[0].type;\nif (msgType === 'audio') {\n  const transcription = $json.transcription || '';\n  if (!transcription) return []; // sub-workflow ya envió el aviso al paciente\n  return [{ json: { inputText: `[Nota de voz]: ${transcription}` } }];\n}\nreturn [{ json: { inputText: $('Code in JavaScript').item.json.messages[0].text.body } }];"
+      },
+      "name": "Set Input Text",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        752,
+        16
+      ],
+      "id": "44bb55cc-66dd-47ee-88ff-112233445577"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Prepara el payload para el sub-workflow STT\nreturn [{ json: {\n  audioId: $('Code in JavaScript').item.json.messages[0].audio.id,\n  wa_id: $('WA Trigger').item.json.contacts[0].wa_id\n} }];"
+      },
+      "name": "Prepare STT Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        336,
+        224
+      ],
+      "id": "prep-stt-input-0001-0000-000000000001"
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "vK1LMd6ZtPKAW4hb",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "name": "STT Transcribe",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.1,
+      "position": [
+        528,
+        224
+      ],
+      "id": "stt-transcribe-00001-0000-000000000002"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "propertyName": "value",
+        "key": "=doctorkyn:n8n-dev:whatsapp:{{ $('WA Trigger').item.json.contacts[0].wa_id }}:ban",
+        "options": {}
+      },
+      "id": "fd164e4a-fb12-4809-b3d5-3e9605de7896",
+      "name": "Check Ban",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        144,
+        -736
+      ],
+      "credentials": {
+        "redis": {
+          "id": "LuDTeor4M8AG2GWQ",
+          "name": "Keimer Infra Cache"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "5d70a18c-5c39-4d7f-b2a7-7718e0ec6486",
+              "leftValue": "={{ $json.value }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "06e35ee1-ade1-4c99-84ab-dc7cc537924a",
+      "name": "IF Banned",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        368,
+        -736
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "incr",
+        "key": "=doctorkyn:n8n-dev:whatsapp:{{ $('WA Trigger').item.json.contacts[0].wa_id }}:violations"
+      },
+      "id": "c19438df-3afa-4e56-9a4a-164b8f355cae",
+      "name": "Incr Violations",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1056,
+        -736
+      ],
+      "credentials": {
+        "redis": {
+          "id": "LuDTeor4M8AG2GWQ",
+          "name": "Keimer Infra Cache"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "expire"
+      },
+      "id": "4f11df04-ffb9-48d7-a1ce-937ad7ac95d3",
+      "name": "Expire Violations",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        1264,
+        -736
+      ],
+      "credentials": {
+        "redis": {
+          "id": "LuDTeor4M8AG2GWQ",
+          "name": "Keimer Infra Cache"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "43f90437-770d-498a-80fc-8780dfaaebca",
+              "leftValue": "={{ Object.values($json)[0] }}",
+              "rightValue": 3,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "529bb304-b28e-4bca-bfcf-824a4567ad1e",
+      "name": "IF Should Ban",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        688,
+        -512
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "=doctorkyn:n8n-dev:whatsapp:{{ $('WA Trigger').item.json.contacts[0].wa_id }}:ban",
+        "value": "1",
+        "expire": true,
+        "ttl": 3600
+      },
+      "id": "9e7ecefa-a60b-4e97-89ba-553e7023b3e5",
+      "name": "Set Ban",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        144,
+        -336
+      ],
+      "credentials": {
+        "redis": {
+          "id": "LuDTeor4M8AG2GWQ",
+          "name": "Keimer Infra Cache"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "541998385660923",
+        "recipientPhoneNumber": "={{ $('WA Trigger').item.json.contacts[0].wa_id }}",
+        "textBody": "🚫 Tu acceso ha sido suspendido temporalmente por *1 hora* debido a un uso inusual reiterado.\n\nPodrás escribirnos nuevamente en *60 minutos*. Si crees que esto fue un error, comunícate directamente con la clínica. 🙏",
+        "additionalFields": {}
+      },
+      "id": "be73f7bb-4f56-4cc3-8ff7-41b4edf6bc3c",
+      "name": "Ban Reply",
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [
+        368,
+        -336
+      ],
+      "webhookId": "31de90ce-f245-4233-8bd7-602945c6f10c",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "0b2IOSWhlooEpqM9",
+          "name": "WhatsApp Business account ID API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "## 📨 Entrada de Mensajes\nRecibe el webhook de WhatsApp y filtra mensajes válidos.\n\n- **Acepta:** texto (≥ 3 caracteres), audio, ubicación\n- **Descarta:** imágenes, stickers, textos demasiado cortos\n- Trunca texto a 1 000 caracteres máximo",
+        "height": 320,
+        "width": 554,
+        "color": 4
+      },
+      "id": "bdf268a5-3765-4eab-b010-b6b445547892",
+      "name": "🗒 Entrada de Mensajes",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -576,
+        -592
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 🛡️ Protección contra Abuso\nBloquea spam y ataques DoS antes de consumir tokens del Agente IA.\n\n- **Check Ban** — Redis GET: verifica ban activo por `wa_id` (TTL 1 h)\n- **Rate Limit** — máx. 3 mensajes/minuto por usuario\n- **Ban progresivo** — 3+ violaciones en 1 h → suspensión de 1 h con aviso\n  - `violations` key: TTL rodante de 1 h (se renueva en cada infracción)\n  - `ban` key: TTL fijo de 1 h → usuarios baneados caen silenciosamente",
+        "height": 780,
+        "width": 1380,
+        "color": 3
+      },
+      "id": "560195e4-f6a2-4dfb-a548-75c107aae925",
+      "name": "🗒 Protección contra Abuso",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        48,
+        -960
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 🎤 Enrutamiento y Preparación de Entrada\nConvierte cualquier tipo de mensaje en `inputText` uniforme para el Agente IA.\n\n- **Audio** → sub-workflow STT (Groq Whisper primary, ElevenLabs fallback)\n  - Valida calidad: descarta artefactos `[BLANK_AUDIO]`, ruido puro, < 2 palabras\n- **Texto / Ubicación** → pasa directo a `Set Input Text`\n- **Salida:** `{ inputText: \"...\" }` — formato uniforme siempre",
+        "height": 580,
+        "width": 672,
+        "color": 5
+      },
+      "id": "125f4378-277a-41a7-880f-41aabb008991",
+      "name": "🗒 Enrutamiento y Preparación",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        48,
+        -176
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 🤖 Agente IA — DoctorKyn\nProcesa el mensaje y genera la respuesta del asistente médico.\n\n- **Modelo:** GPT-4.1-mini (temp 0.1, máx 600 tokens)\n- **Memoria:** Redis por sesión `wa_id` — TTL 2 h, ventana 30 mensajes\n- **Herramientas:** MCP Client → calendario / agendamiento\n- **Fallback:** respuesta genérica si el agente no produce output válido",
+        "height": 584,
+        "width": 712
+      },
+      "id": "cd3e1772-34db-4d2b-a39d-c3864927beba",
+      "name": "🗒 Agente IA",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        720,
+        -176
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "6ad6963d-b800-47ff-b450-71726ff0e5db",
+              "leftValue": "={{ Object.values($json)[0] }}",
+              "rightValue": 3,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "706f770a-9148-417a-9206-e1c82551380a",
+      "name": "IF Near Limit",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [
+        128,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "541998385660923",
+        "recipientPhoneNumber": "={{ $('WA Trigger').item.json.contacts[0].wa_id }}",
+        "textBody": "={{ '⚠️ Llevas ' + Object.values($json)[0] + '/6 mensajes este minuto. ' + ((6 - Object.values($json)[0]) > 0 ? 'Te quedan *' + (6 - Object.values($json)[0]) + '* antes del límite.' : 'El próximo mensaje será bloqueado.') }}",
+        "additionalFields": {}
+      },
+      "id": "5790ae2a-6ec1-4024-9d07-12ee372e63be",
+      "name": "Warning Reply",
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [
+        144,
+        32
+      ],
+      "webhookId": "182a7e0d-afa3-4981-8c59-fc243989ee06",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "0b2IOSWhlooEpqM9",
+          "name": "WhatsApp Business account ID API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Check Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Output": {
+      "main": [
+        [
+          {
+            "node": "Reply WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Fallback Reply WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "MCP Client": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Check Ban",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Rate Limit": {
+      "main": [
+        [
+          {
+            "node": "IF Rate Limited",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Rate Limited": {
+      "main": [
+        [
+          {
+            "node": "Incr Violations",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "IF Near Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WA Trigger": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Audio": {
+      "main": [
+        [
+          {
+            "node": "Prepare STT Input",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set Input Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Input Text": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare STT Input": {
+      "main": [
+        [
+          {
+            "node": "STT Transcribe",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "STT Transcribe": {
+      "main": [
+        [
+          {
+            "node": "Set Input Text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Ban": {
+      "main": [
+        [
+          {
+            "node": "IF Banned",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Banned": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Redis Rate Limit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Incr Violations": {
+      "main": [
+        [
+          {
+            "node": "Expire Violations",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "IF Should Ban",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Should Ban": {
+      "main": [
+        [
+          {
+            "node": "Set Ban",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Rate Limit Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set Ban": {
+      "main": [
+        [
+          {
+            "node": "Ban Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF Near Limit": {
+      "main": [
+        [
+          {
+            "node": "Warning Reply",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "IF Audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Warning Reply": {
+      "main": [
+        [
+          {
+            "node": "IF Audio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "errorWorkflow": "FAOaoPBNYLkpd3gf"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "d2d3d7e7-50e3-464d-bdcf-d525ee31ac74",
+  "activeVersionId": "d2d3d7e7-50e3-464d-bdcf-d525ee31ac74",
+  "versionCounter": 528,
+  "triggerCount": 1,
+  "shared": [
+    {
+      "updatedAt": "2026-04-03T15:01:22.497Z",
+      "createdAt": "2026-04-03T15:01:22.497Z",
+      "role": "workflow:owner",
+      "workflowId": "kbWzPpbDMnz4TyA0",
+      "projectId": "MfE3ZI64e0dGnFAj",
+      "project": {
+        "updatedAt": "2026-04-03T12:29:07.342Z",
+        "createdAt": "2026-01-16T18:34:08.899Z",
+        "id": "MfE3ZI64e0dGnFAj",
+        "name": "Keimer Montes Oliver <keimermo1989@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "5963f460-3684-486d-8f21-cefca0d4b976"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-04-08T06:12:40.746Z",
+    "createdAt": "2026-04-08T06:12:31.494Z",
+    "versionId": "d2d3d7e7-50e3-464d-bdcf-d525ee31ac74",
+    "workflowId": "kbWzPpbDMnz4TyA0",
+    "nodes": [
+      {
+        "parameters": {
+          "model": {
+            "__rl": true,
+            "value": "gpt-4.1-mini",
+            "mode": "list",
+            "cachedResultName": "gpt-4.1-mini"
+          },
+          "options": {
+            "maxTokens": 600,
+            "temperature": 0.1
+          }
+        },
+        "name": "OpenAI Chat Model",
+        "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+        "typeVersion": 1.2,
+        "position": [
+          832,
+          224
+        ],
+        "id": "d9605e99-df11-4481-8fc3-1b5b2cf375a7",
+        "credentials": {
+          "openAiApi": {
+            "id": "wLpMuXGfvIEudfkX",
+            "name": "Keimer OpenAI"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "promptType": "define",
+          "text": "={{ $json.inputText }}",
+          "options": {
+            "systemMessage": "=Eres el asistente virtual de DoctorKyn para agendamiento de citas médicas por WhatsApp. Hablas en español de forma amable, concisa y profesional.\n\n## CONTEXTO\nFecha de hoy (fija para esta sesión): {{ $now.format('yyyy-MM-dd') }}\nUsá SOLO esta fecha como referencia. No inventes fechas.\n\n## HERRAMIENTAS (via MCP Client)\n\n- find_patient(identification) — busca paciente por cédula\n- get_available_services() — retorna servicios disponibles (nombres exactos)\n- get_available_clinics(serviceName?) — retorna clínicas disponibles para el servicio\n- find_nearby_clinics(latitude, longitude, serviceName?) — clínicas por distancia\n- get_available_days(clinicName, serviceName, startDate, endDate) — fechas con disponibilidad\n- get_time_slots(clinicName, serviceName, date) — horarios del día, incluye scheduleId por slot\n- get_discounts(patientCedula, clinicName) — descuentos aplicables\n- book_appointment(clinicName, serviceName, date, time, patientCedula, price) — retorna receiptId. price = precio FINAL con descuento.\n- get_appointment(receiptId) — detalles de cita\n- reschedule_appointment(receiptId, newScheduleId) — reprograma usando scheduleId de get_time_slots\n- cancel_appointment(receiptId) — cancela cita\n\nTodas las herramientas aceptan NOMBRES (no UUIDs), excepto newScheduleId en reschedule que viene de get_time_slots. NUNCA inventes UUIDs ni nombres.\n\n## FLUJO DE AGENDAMIENTO\n\n1. Pedí la cédula → find_patient(identification)\n2. Preguntá qué especialidad → SIEMPRE llamá get_available_services() y mostrá la lista numerada. Usá el NOMBRE EXACTO de la opción elegida.\n3. Preguntá en qué clínica → get_available_clinics(serviceName). Si el paciente no sabe, ofrecé compartir ubicación de WhatsApp → find_nearby_clinics.\n4. Días → get_available_days(clinicName, serviceName, startDate=hoy, endDate=hoy+30días). Usá la fecha del CONTEXTO. Mostrá máx 5 opciones.\n5. Horarios → get_time_slots(clinicName, serviceName, date=YYYY-MM-DD). Guardá el scheduleId del slot que elija.\n6. Descuentos → get_discounts(patientCedula, clinicName). Calculá precio final.\n7. Resumí (fecha, hora, precio final, doctor si fue devuelto) y pedí confirmación explícita.\n8. Con confirmación → book_appointment(clinicName, serviceName, date, time, patientCedula, price con descuento).\n9. Confirmación final → get_appointment(receiptId). Mostrá el código.\n\n## FLUJOS ALTERNATIVOS\n\n- Consultar cita: Pedí el receiptId → get_appointment(receiptId). Si no lo recuerda, indicale que está en el mensaje de confirmación.\n- Reprogramar: receiptId → get_available_days + get_time_slots → elegí slot → reschedule_appointment(receiptId, newScheduleId=scheduleId del slot).\n- Cancelar: receiptId → cancel_appointment(receiptId).\n\n## MANEJO DE ERRORES\n\n- find_patient falla → la cédula no está registrada. Pedí que se registre en DoctorKyn o contacte a la clínica.\n- book_appointment retorna \"ya tiene cita pendiente\" → informá al paciente, ofrecé ver la cita existente (get_appointment) o reprogramarla.\n- get_available_services vacío → no hay disponibilidad, sugerí contactar directamente a la clínica.\n- get_available_clinics vacío para un servicio → no hay clínicas con ese servicio, ofrecé otras especialidades.\n- Sin receiptId para cancelar/reprogramar → indicá que está en el mensaje de confirmación anterior.\n\n## REGLAS\n- NUNCA agendes sin confirmación explícita. Acepta: sí, confirmo, dale, ok, va, perfecto, claro.\n- SIEMPRE muestra precio final (con descuento) antes de reservar.\n- Mensajes cortos: máx 4 líneas. Listas: máx 5 ítems numerados.\n- Emojis moderados: 📅 🕐 ✅ 👨‍⚕️\n- Formato fechas: 'Lunes 6 de Abril', horas: '09:00'\n- No menciones nombre de doctor si no lo devolvió get_time_slots.\n- Los PRECIOS dependen de la clínica: NUNCA muestres precios de servicios sin haber identificado primero la clínica. El precio real se obtiene de get_time_slots (precio por slot) o get_discounts (precio con descuento). Si el paciente pregunta '¿cuánto cuesta?' sin haber elegido clínica, preguntale primero en qué clínica.",
+            "maxIterations": 10
+          }
+        },
+        "name": "AI Agent",
+        "type": "@n8n/n8n-nodes-langchain.agent",
+        "typeVersion": 1.7,
+        "position": [
+          928,
+          16
+        ],
+        "id": "0b3235c8-7a78-4f5a-bbfd-5cb38c87fe99"
+      },
+      {
+        "parameters": {
+          "sessionIdType": "customKey",
+          "sessionKey": "=doctorkyn:n8n-dev:whatsapp:{{ $('WA Trigger').item.json.contacts[0].wa_id }}",
+          "sessionTTL": 7200,
+          "contextWindowLength": 30
+        },
+        "name": "Memory",
+        "type": "@n8n/n8n-nodes-langchain.memoryRedisChat",
+        "typeVersion": 1.5,
+        "position": [
+          976,
+          224
+        ],
+        "id": "aaa043d9-f9ac-476c-b7fb-42e5a944fb7c",
+        "credentials": {
+          "redis": {
+            "id": "LuDTeor4M8AG2GWQ",
+            "name": "Keimer Infra Cache"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "send",
+          "phoneNumberId": "541998385660923",
+          "recipientPhoneNumber": "={{ $('WA Trigger').item.json.contacts[0].wa_id }}",
+          "textBody": "={{ $json.output }}",
+          "additionalFields": {}
+        },
+        "name": "Reply WhatsApp",
+        "type": "n8n-nodes-base.whatsApp",
+        "typeVersion": 1,
+        "position": [
+          1312,
+          -80
+        ],
+        "id": "68f14b46-2d15-48a9-bba3-57440bbfbdaa",
+        "webhookId": "27bd3093-43e1-454c-afa9-c824a5608808",
+        "credentials": {
+          "whatsAppApi": {
+            "id": "0b2IOSWhlooEpqM9",
+            "name": "WhatsApp Business account ID API"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "endpointUrl": "http://mcp-calendar-service:3100/mcp",
+          "options": {}
+        },
+        "type": "@n8n/n8n-nodes-langchain.mcpClientTool",
+        "typeVersion": 1.2,
+        "position": [
+          1152,
+          224
+        ],
+        "id": "68a42f14-dc33-40bd-be7a-d3515bb7381b",
+        "name": "MCP Client"
+      },
+      {
+        "parameters": {
+          "jsCode": "// Filtrar solo mensajes válidos de WhatsApp (texto, ubicación o audio)\nconst data = $input.first().json;\nif (!data.contacts || !data.contacts[0]?.wa_id || !data.messages || data.messages.length === 0) {\n    return [];\n}\nconst msg = data.messages[0];\nconst type = msg?.type;\n// Aceptar mensajes de texto (mínimo 3 caracteres, máximo 1000)\nif (type === 'text' && msg.text?.body) {\n    const body = msg.text.body.trim();\n    if (body.length < 3) return []; // demasiado corto — ignorar silenciosamente\n    data.messages[0].text.body = body.substring(0, 1000);\n    return [{ json: data }];\n}\n// Aceptar mensajes de ubicación — convertir a texto para el AI Agent\nif (type === 'location' && msg.location) {\n    const lat = msg.location.latitude;\n    const lng = msg.location.longitude;\n    data.messages[0].text = { body: `Mi ubicación es: latitud ${lat}, longitud ${lng}` };\n    return [{ json: data }];\n}\n// Aceptar mensajes de audio — se transcribirán en nodos siguientes\nif (type === 'audio' && msg.audio?.id) {\n    return [{ json: data }];\n}\n// Otro tipo de mensaje (imagen, sticker, etc.) — ignorar\nreturn [];"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -288,
+          -416
+        ],
+        "id": "e27fa7be-0706-4ed7-9213-ef314100687d",
+        "name": "Code in JavaScript"
+      },
+      {
+        "parameters": {
+          "updates": [
+            "messages"
+          ],
+          "options": {}
+        },
+        "name": "WA Trigger",
+        "type": "n8n-nodes-base.whatsAppTrigger",
+        "typeVersion": 1,
+        "position": [
+          -464,
+          -416
+        ],
+        "id": "01be3536-ce6d-4a0f-8450-dd477b746925",
+        "webhookId": "875510d8-b9f9-45f9-9412-8d79c02c6b20",
+        "credentials": {
+          "whatsAppTriggerApi": {
+            "id": "KX7vcbVgBEwD30dp",
+            "name": "WhatsApp OAuth account"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "incr",
+          "key": "=doctorkyn:ratelimit:{{ $('WA Trigger').item.json.contacts[0].wa_id }}:{{ $now.format('yyyyMMdd-HHmm') }}"
+        },
+        "name": "Redis Rate Limit",
+        "type": "n8n-nodes-base.redis",
+        "typeVersion": 1,
+        "position": [
+          576,
+          -736
+        ],
+        "id": "c3d4e5f6-a7b8-9012-cdef-345678901234",
+        "credentials": {
+          "redis": {
+            "id": "LuDTeor4M8AG2GWQ",
+            "name": "Keimer Infra Cache"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose"
+            },
+            "conditions": [
+              {
+                "id": "b2c3d4e5-f6a7-8901-bcde-234567890abc",
+                "leftValue": "={{ Object.values($json)[0] }}",
+                "rightValue": 6,
+                "operator": {
+                  "type": "number",
+                  "operation": "gt"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "name": "IF Rate Limited",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          816,
+          -736
+        ],
+        "id": "d4e5f6a7-b8c9-0123-defa-456789012345"
+      },
+      {
+        "parameters": {
+          "operation": "send",
+          "phoneNumberId": "541998385660923",
+          "recipientPhoneNumber": "={{ $('WA Trigger').item.json.contacts[0].wa_id }}",
+          "textBody": "⏳ Recibí varios mensajes tuyos muy seguidos.\n\nPara evitar errores, solo proceso *3 mensajes por minuto* por persona. Espera unos segundos y vuelve a escribirme — estaré aquí. 🙏",
+          "additionalFields": {}
+        },
+        "name": "Rate Limit Reply",
+        "type": "n8n-nodes-base.whatsApp",
+        "typeVersion": 1,
+        "position": [
+          688,
+          -336
+        ],
+        "id": "e5f6a7b8-c9d0-1234-efab-567890123456",
+        "webhookId": "ab4f3f02-3742-43eb-9b5f-85ca256b9b18",
+        "credentials": {
+          "whatsAppApi": {
+            "id": "0b2IOSWhlooEpqM9",
+            "name": "WhatsApp Business account ID API"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict"
+            },
+            "conditions": [
+              {
+                "id": "f1c2d3e4-a5b6-7890-cdef-123456789abc",
+                "leftValue": "={{ $json.output }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "name": "Check Output",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          1168,
+          16
+        ],
+        "id": "f1c2d3e4-a5b6-7890-cdef-123456789abc"
+      },
+      {
+        "parameters": {
+          "operation": "send",
+          "phoneNumberId": "541998385660923",
+          "recipientPhoneNumber": "={{ $('WA Trigger').item.json.contacts[0].wa_id }}",
+          "textBody": "Lo sentimos, estamos teniendo dificultades técnicas. Por favor, intenta nuevamente en unos minutos. 🙏",
+          "additionalFields": {}
+        },
+        "name": "Fallback Reply WhatsApp",
+        "type": "n8n-nodes-base.whatsApp",
+        "typeVersion": 1,
+        "position": [
+          1328,
+          128
+        ],
+        "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+        "webhookId": "fd4f1a96-5d47-49d9-8c1f-dcf6d33f2404",
+        "credentials": {
+          "whatsAppApi": {
+            "id": "0b2IOSWhlooEpqM9",
+            "name": "WhatsApp Business account ID API"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict"
+            },
+            "conditions": [
+              {
+                "id": "aa11bb22-cc33-4d44-ee55-ff6677889900",
+                "leftValue": "={{ $('Code in JavaScript').item.json.messages[0].type }}",
+                "rightValue": "audio",
+                "operator": {
+                  "type": "string",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "name": "IF Audio",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          320,
+          32
+        ],
+        "id": "aa11bb22-cc33-4d44-ee55-ff6677889900"
+      },
+      {
+        "parameters": {
+          "jsCode": "// Prepara inputText para el AI Agent\n// Para texto/ubicación: lee de Code in JavaScript\n// Para audio: lee .transcription devuelto por sub-workflow STT\nconst msgType = $('Code in JavaScript').item.json.messages[0].type;\nif (msgType === 'audio') {\n  const transcription = $json.transcription || '';\n  if (!transcription) return []; // sub-workflow ya envió el aviso al paciente\n  return [{ json: { inputText: `[Nota de voz]: ${transcription}` } }];\n}\nreturn [{ json: { inputText: $('Code in JavaScript').item.json.messages[0].text.body } }];"
+        },
+        "name": "Set Input Text",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          752,
+          16
+        ],
+        "id": "44bb55cc-66dd-47ee-88ff-112233445577"
+      },
+      {
+        "parameters": {
+          "jsCode": "// Prepara el payload para el sub-workflow STT\nreturn [{ json: {\n  audioId: $('Code in JavaScript').item.json.messages[0].audio.id,\n  wa_id: $('WA Trigger').item.json.contacts[0].wa_id\n} }];"
+        },
+        "name": "Prepare STT Input",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          336,
+          224
+        ],
+        "id": "prep-stt-input-0001-0000-000000000001"
+      },
+      {
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "value": "vK1LMd6ZtPKAW4hb",
+            "mode": "id"
+          },
+          "options": {}
+        },
+        "name": "STT Transcribe",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.1,
+        "position": [
+          528,
+          224
+        ],
+        "id": "stt-transcribe-00001-0000-000000000002"
+      },
+      {
+        "parameters": {
+          "operation": "get",
+          "propertyName": "value",
+          "key": "=doctorkyn:n8n-dev:whatsapp:{{ $('WA Trigger').item.json.contacts[0].wa_id }}:ban",
+          "options": {}
+        },
+        "id": "fd164e4a-fb12-4809-b3d5-3e9605de7896",
+        "name": "Check Ban",
+        "type": "n8n-nodes-base.redis",
+        "typeVersion": 1,
+        "position": [
+          144,
+          -736
+        ],
+        "credentials": {
+          "redis": {
+            "id": "LuDTeor4M8AG2GWQ",
+            "name": "Keimer Infra Cache"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose"
+            },
+            "conditions": [
+              {
+                "id": "5d70a18c-5c39-4d7f-b2a7-7718e0ec6486",
+                "leftValue": "={{ $json.value }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "06e35ee1-ade1-4c99-84ab-dc7cc537924a",
+        "name": "IF Banned",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2,
+        "position": [
+          368,
+          -736
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "incr",
+          "key": "=doctorkyn:n8n-dev:whatsapp:{{ $('WA Trigger').item.json.contacts[0].wa_id }}:violations"
+        },
+        "id": "c19438df-3afa-4e56-9a4a-164b8f355cae",
+        "name": "Incr Violations",
+        "type": "n8n-nodes-base.redis",
+        "typeVersion": 1,
+        "position": [
+          1056,
+          -736
+        ],
+        "credentials": {
+          "redis": {
+            "id": "LuDTeor4M8AG2GWQ",
+            "name": "Keimer Infra Cache"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "expire"
+        },
+        "id": "4f11df04-ffb9-48d7-a1ce-937ad7ac95d3",
+        "name": "Expire Violations",
+        "type": "n8n-nodes-base.redis",
+        "typeVersion": 1,
+        "position": [
+          1264,
+          -736
+        ],
+        "credentials": {
+          "redis": {
+            "id": "LuDTeor4M8AG2GWQ",
+            "name": "Keimer Infra Cache"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose"
+            },
+            "conditions": [
+              {
+                "id": "43f90437-770d-498a-80fc-8780dfaaebca",
+                "leftValue": "={{ Object.values($json)[0] }}",
+                "rightValue": 3,
+                "operator": {
+                  "type": "number",
+                  "operation": "gte"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "529bb304-b28e-4bca-bfcf-824a4567ad1e",
+        "name": "IF Should Ban",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2,
+        "position": [
+          688,
+          -512
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "set",
+          "key": "=doctorkyn:n8n-dev:whatsapp:{{ $('WA Trigger').item.json.contacts[0].wa_id }}:ban",
+          "value": "1",
+          "expire": true,
+          "ttl": 3600
+        },
+        "id": "9e7ecefa-a60b-4e97-89ba-553e7023b3e5",
+        "name": "Set Ban",
+        "type": "n8n-nodes-base.redis",
+        "typeVersion": 1,
+        "position": [
+          144,
+          -336
+        ],
+        "credentials": {
+          "redis": {
+            "id": "LuDTeor4M8AG2GWQ",
+            "name": "Keimer Infra Cache"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "operation": "send",
+          "phoneNumberId": "541998385660923",
+          "recipientPhoneNumber": "={{ $('WA Trigger').item.json.contacts[0].wa_id }}",
+          "textBody": "🚫 Tu acceso ha sido suspendido temporalmente por *1 hora* debido a un uso inusual reiterado.\n\nPodrás escribirnos nuevamente en *60 minutos*. Si crees que esto fue un error, comunícate directamente con la clínica. 🙏",
+          "additionalFields": {}
+        },
+        "id": "be73f7bb-4f56-4cc3-8ff7-41b4edf6bc3c",
+        "name": "Ban Reply",
+        "type": "n8n-nodes-base.whatsApp",
+        "typeVersion": 1,
+        "position": [
+          368,
+          -336
+        ],
+        "webhookId": "31de90ce-f245-4233-8bd7-602945c6f10c",
+        "credentials": {
+          "whatsAppApi": {
+            "id": "0b2IOSWhlooEpqM9",
+            "name": "WhatsApp Business account ID API"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "content": "## 📨 Entrada de Mensajes\nRecibe el webhook de WhatsApp y filtra mensajes válidos.\n\n- **Acepta:** texto (≥ 3 caracteres), audio, ubicación\n- **Descarta:** imágenes, stickers, textos demasiado cortos\n- Trunca texto a 1 000 caracteres máximo",
+          "height": 320,
+          "width": 554,
+          "color": 4
+        },
+        "id": "bdf268a5-3765-4eab-b010-b6b445547892",
+        "name": "🗒 Entrada de Mensajes",
+        "type": "n8n-nodes-base.stickyNote",
+        "typeVersion": 1,
+        "position": [
+          -576,
+          -592
+        ]
+      },
+      {
+        "parameters": {
+          "content": "## 🛡️ Protección contra Abuso\nBloquea spam y ataques DoS antes de consumir tokens del Agente IA.\n\n- **Check Ban** — Redis GET: verifica ban activo por `wa_id` (TTL 1 h)\n- **Rate Limit** — máx. 3 mensajes/minuto por usuario\n- **Ban progresivo** — 3+ violaciones en 1 h → suspensión de 1 h con aviso\n  - `violations` key: TTL rodante de 1 h (se renueva en cada infracción)\n  - `ban` key: TTL fijo de 1 h → usuarios baneados caen silenciosamente",
+          "height": 780,
+          "width": 1380,
+          "color": 3
+        },
+        "id": "560195e4-f6a2-4dfb-a548-75c107aae925",
+        "name": "🗒 Protección contra Abuso",
+        "type": "n8n-nodes-base.stickyNote",
+        "typeVersion": 1,
+        "position": [
+          48,
+          -960
+        ]
+      },
+      {
+        "parameters": {
+          "content": "## 🎤 Enrutamiento y Preparación de Entrada\nConvierte cualquier tipo de mensaje en `inputText` uniforme para el Agente IA.\n\n- **Audio** → sub-workflow STT (Groq Whisper primary, ElevenLabs fallback)\n  - Valida calidad: descarta artefactos `[BLANK_AUDIO]`, ruido puro, < 2 palabras\n- **Texto / Ubicación** → pasa directo a `Set Input Text`\n- **Salida:** `{ inputText: \"...\" }` — formato uniforme siempre",
+          "height": 580,
+          "width": 672,
+          "color": 5
+        },
+        "id": "125f4378-277a-41a7-880f-41aabb008991",
+        "name": "🗒 Enrutamiento y Preparación",
+        "type": "n8n-nodes-base.stickyNote",
+        "typeVersion": 1,
+        "position": [
+          48,
+          -176
+        ]
+      },
+      {
+        "parameters": {
+          "content": "## 🤖 Agente IA — DoctorKyn\nProcesa el mensaje y genera la respuesta del asistente médico.\n\n- **Modelo:** GPT-4.1-mini (temp 0.1, máx 600 tokens)\n- **Memoria:** Redis por sesión `wa_id` — TTL 2 h, ventana 30 mensajes\n- **Herramientas:** MCP Client → calendario / agendamiento\n- **Fallback:** respuesta genérica si el agente no produce output válido",
+          "height": 584,
+          "width": 712
+        },
+        "id": "cd3e1772-34db-4d2b-a39d-c3864927beba",
+        "name": "🗒 Agente IA",
+        "type": "n8n-nodes-base.stickyNote",
+        "typeVersion": 1,
+        "position": [
+          720,
+          -176
+        ]
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "loose"
+            },
+            "conditions": [
+              {
+                "id": "6ad6963d-b800-47ff-b450-71726ff0e5db",
+                "leftValue": "={{ Object.values($json)[0] }}",
+                "rightValue": 3,
+                "operator": {
+                  "type": "number",
+                  "operation": "gte"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "706f770a-9148-417a-9206-e1c82551380a",
+        "name": "IF Near Limit",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2,
+        "position": [
+          128,
+          224
+        ]
+      },
+      {
+        "parameters": {
+          "operation": "send",
+          "phoneNumberId": "541998385660923",
+          "recipientPhoneNumber": "={{ $('WA Trigger').item.json.contacts[0].wa_id }}",
+          "textBody": "={{ '⚠️ Llevas ' + Object.values($json)[0] + '/6 mensajes este minuto. ' + ((6 - Object.values($json)[0]) > 0 ? 'Te quedan *' + (6 - Object.values($json)[0]) + '* antes del límite.' : 'El próximo mensaje será bloqueado.') }}",
+          "additionalFields": {}
+        },
+        "id": "5790ae2a-6ec1-4024-9d07-12ee372e63be",
+        "name": "Warning Reply",
+        "type": "n8n-nodes-base.whatsApp",
+        "typeVersion": 1,
+        "position": [
+          144,
+          32
+        ],
+        "webhookId": "182a7e0d-afa3-4981-8c59-fc243989ee06",
+        "credentials": {
+          "whatsAppApi": {
+            "id": "0b2IOSWhlooEpqM9",
+            "name": "WhatsApp Business account ID API"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "OpenAI Chat Model": {
+        "ai_languageModel": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_languageModel",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Memory": {
+        "ai_memory": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_memory",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "AI Agent": {
+        "main": [
+          [
+            {
+              "node": "Check Output",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Check Output": {
+        "main": [
+          [
+            {
+              "node": "Reply WhatsApp",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Fallback Reply WhatsApp",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "MCP Client": {
+        "ai_tool": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "ai_tool",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Code in JavaScript": {
+        "main": [
+          [
+            {
+              "node": "Check Ban",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Redis Rate Limit": {
+        "main": [
+          [
+            {
+              "node": "IF Rate Limited",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF Rate Limited": {
+        "main": [
+          [
+            {
+              "node": "Incr Violations",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "IF Near Limit",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "WA Trigger": {
+        "main": [
+          [
+            {
+              "node": "Code in JavaScript",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF Audio": {
+        "main": [
+          [
+            {
+              "node": "Prepare STT Input",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Set Input Text",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Set Input Text": {
+        "main": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Prepare STT Input": {
+        "main": [
+          [
+            {
+              "node": "STT Transcribe",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "STT Transcribe": {
+        "main": [
+          [
+            {
+              "node": "Set Input Text",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Check Ban": {
+        "main": [
+          [
+            {
+              "node": "IF Banned",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF Banned": {
+        "main": [
+          [],
+          [
+            {
+              "node": "Redis Rate Limit",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Incr Violations": {
+        "main": [
+          [
+            {
+              "node": "Expire Violations",
+              "type": "main",
+              "index": 0
+            },
+            {
+              "node": "IF Should Ban",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF Should Ban": {
+        "main": [
+          [
+            {
+              "node": "Set Ban",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Rate Limit Reply",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Set Ban": {
+        "main": [
+          [
+            {
+              "node": "Ban Reply",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF Near Limit": {
+        "main": [
+          [
+            {
+              "node": "Warning Reply",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "IF Audio",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Warning Reply": {
+        "main": [
+          [
+            {
+              "node": "IF Audio",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Keimer Montes Oliver",
+    "name": "Version d2d3d7e7",
+    "description": "",
+    "autosaved": true,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-04-08T06:12:40.744Z",
+        "id": 207,
+        "workflowId": "kbWzPpbDMnz4TyA0",
+        "versionId": "d2d3d7e7-50e3-464d-bdcf-d525ee31ac74",
+        "event": "activated",
+        "userId": "5963f460-3684-486d-8f21-cefca0d4b976"
+      }
+    ]
+  }
+}

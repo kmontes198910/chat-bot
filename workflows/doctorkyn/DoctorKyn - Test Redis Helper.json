@@ -1,0 +1,539 @@
+{
+  "updatedAt": "2026-05-11T15:30:18.085Z",
+  "createdAt": "2026-04-08T03:52:35.946Z",
+  "id": "ZiM3Zafz5GS4YlWN",
+  "name": "DoctorKyn - Test Redis Helper",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ban-test-get",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "8a630ac3-cecb-4efe-8bf9-af93d31ac370",
+      "name": "WH ban-test-get",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        -240
+      ],
+      "webhookId": "24b18275-bd06-4b87-8e84-b0b7d3b1d11c"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "={{ $json.body.key }}",
+        "options": {}
+      },
+      "id": "0a2adbcc-7ed5-483c-940c-de3dbceda98f",
+      "name": "Redis GET",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        220,
+        -240
+      ],
+      "credentials": {
+        "redis": {
+          "id": "LuDTeor4M8AG2GWQ",
+          "name": "Keimer Infra Cache"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ op:\"get\", key: $(\"WH ban-test-get\").item.json.body.key, value: $json.propertyName }) }}"
+      },
+      "id": "2b0e2367-b3b7-4d3e-b672-1321a05a4d28",
+      "name": "Respond GET",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        440,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ban-test-set",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "931de00f-73ac-454c-983a-577878be8d42",
+      "name": "WH ban-test-set",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "38a6774a-6053-4c40-8c7f-343ea6d54dfd"
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "={{ $json.body.key }}",
+        "value": "={{ String($json.body.value) }}",
+        "expire": true,
+        "ttl": "={{ $json.body.ttl || 0 }}"
+      },
+      "id": "a952735a-75ef-49ed-aa37-cf29b3ce4f04",
+      "name": "Redis SET",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        220,
+        0
+      ],
+      "credentials": {
+        "redis": {
+          "id": "LuDTeor4M8AG2GWQ",
+          "name": "Keimer Infra Cache"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ op:\"set\", key: $(\"WH ban-test-set\").item.json.body.key, ok: true }) }}"
+      },
+      "id": "5992312a-cf54-4fd3-928c-d242d7939d57",
+      "name": "Respond SET",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        440,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ban-test-del",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "50c8494f-d631-4200-aaa7-1c4697430f14",
+      "name": "WH ban-test-del",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        240
+      ],
+      "webhookId": "0a3853b2-19ca-43ef-8dc4-e295c9f7a495"
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "={{ $json.body.key }}"
+      },
+      "id": "bea15117-5341-4efd-be81-68cd5587f8be",
+      "name": "Redis DEL",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        220,
+        240
+      ],
+      "credentials": {
+        "redis": {
+          "id": "LuDTeor4M8AG2GWQ",
+          "name": "Keimer Infra Cache"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ op:\"del\", key: $(\"WH ban-test-del\").item.json.body.key, ok: true }) }}"
+      },
+      "id": "5758e4aa-90a5-4421-8c8b-2df640c3801a",
+      "name": "Respond DEL",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        440,
+        240
+      ]
+    }
+  ],
+  "connections": {
+    "WH ban-test-get": {
+      "main": [
+        [
+          {
+            "node": "Redis GET",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis GET": {
+      "main": [
+        [
+          {
+            "node": "Respond GET",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WH ban-test-set": {
+      "main": [
+        [
+          {
+            "node": "Redis SET",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis SET": {
+      "main": [
+        [
+          {
+            "node": "Respond SET",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WH ban-test-del": {
+      "main": [
+        [
+          {
+            "node": "Redis DEL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis DEL": {
+      "main": [
+        [
+          {
+            "node": "Respond DEL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "a319cbe0-f84b-4bb0-9f3e-ba0beb33e1d4",
+  "activeVersionId": "a319cbe0-f84b-4bb0-9f3e-ba0beb33e1d4",
+  "versionCounter": 23,
+  "triggerCount": 3,
+  "shared": [
+    {
+      "updatedAt": "2026-04-08T03:52:35.946Z",
+      "createdAt": "2026-04-08T03:52:35.946Z",
+      "role": "workflow:owner",
+      "workflowId": "ZiM3Zafz5GS4YlWN",
+      "projectId": "MfE3ZI64e0dGnFAj",
+      "project": {
+        "updatedAt": "2026-04-03T12:29:07.342Z",
+        "createdAt": "2026-01-16T18:34:08.899Z",
+        "id": "MfE3ZI64e0dGnFAj",
+        "name": "Keimer Montes Oliver <keimermo1989@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "5963f460-3684-486d-8f21-cefca0d4b976"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-04-08T03:53:13.735Z",
+    "createdAt": "2026-04-08T03:53:13.735Z",
+    "versionId": "a319cbe0-f84b-4bb0-9f3e-ba0beb33e1d4",
+    "workflowId": "ZiM3Zafz5GS4YlWN",
+    "nodes": [
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "ban-test-get",
+          "responseMode": "responseNode",
+          "options": {}
+        },
+        "id": "8a630ac3-cecb-4efe-8bf9-af93d31ac370",
+        "name": "WH ban-test-get",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          0,
+          -240
+        ],
+        "webhookId": "24b18275-bd06-4b87-8e84-b0b7d3b1d11c"
+      },
+      {
+        "parameters": {
+          "operation": "get",
+          "key": "={{ $json.body.key }}",
+          "options": {}
+        },
+        "id": "0a2adbcc-7ed5-483c-940c-de3dbceda98f",
+        "name": "Redis GET",
+        "type": "n8n-nodes-base.redis",
+        "typeVersion": 1,
+        "position": [
+          220,
+          -240
+        ],
+        "credentials": {
+          "redis": {
+            "id": "LuDTeor4M8AG2GWQ",
+            "name": "Keimer Infra Cache"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ JSON.stringify({ op:\"get\", key: $(\"WH ban-test-get\").item.json.body.key, value: $json.propertyName }) }}"
+        },
+        "id": "2b0e2367-b3b7-4d3e-b672-1321a05a4d28",
+        "name": "Respond GET",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1,
+        "position": [
+          440,
+          -240
+        ]
+      },
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "ban-test-set",
+          "responseMode": "responseNode",
+          "options": {}
+        },
+        "id": "931de00f-73ac-454c-983a-577878be8d42",
+        "name": "WH ban-test-set",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          0,
+          0
+        ],
+        "webhookId": "38a6774a-6053-4c40-8c7f-343ea6d54dfd"
+      },
+      {
+        "parameters": {
+          "operation": "set",
+          "key": "={{ $json.body.key }}",
+          "value": "={{ String($json.body.value) }}",
+          "expire": true,
+          "ttl": "={{ $json.body.ttl || 0 }}"
+        },
+        "id": "a952735a-75ef-49ed-aa37-cf29b3ce4f04",
+        "name": "Redis SET",
+        "type": "n8n-nodes-base.redis",
+        "typeVersion": 1,
+        "position": [
+          220,
+          0
+        ],
+        "credentials": {
+          "redis": {
+            "id": "LuDTeor4M8AG2GWQ",
+            "name": "Keimer Infra Cache"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ JSON.stringify({ op:\"set\", key: $(\"WH ban-test-set\").item.json.body.key, ok: true }) }}"
+        },
+        "id": "5992312a-cf54-4fd3-928c-d242d7939d57",
+        "name": "Respond SET",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1,
+        "position": [
+          440,
+          0
+        ]
+      },
+      {
+        "parameters": {
+          "httpMethod": "POST",
+          "path": "ban-test-del",
+          "responseMode": "responseNode",
+          "options": {}
+        },
+        "id": "50c8494f-d631-4200-aaa7-1c4697430f14",
+        "name": "WH ban-test-del",
+        "type": "n8n-nodes-base.webhook",
+        "typeVersion": 2,
+        "position": [
+          0,
+          240
+        ],
+        "webhookId": "0a3853b2-19ca-43ef-8dc4-e295c9f7a495"
+      },
+      {
+        "parameters": {
+          "operation": "delete",
+          "key": "={{ $json.body.key }}"
+        },
+        "id": "bea15117-5341-4efd-be81-68cd5587f8be",
+        "name": "Redis DEL",
+        "type": "n8n-nodes-base.redis",
+        "typeVersion": 1,
+        "position": [
+          220,
+          240
+        ],
+        "credentials": {
+          "redis": {
+            "id": "LuDTeor4M8AG2GWQ",
+            "name": "Keimer Infra Cache"
+          }
+        }
+      },
+      {
+        "parameters": {
+          "respondWith": "json",
+          "responseBody": "={{ JSON.stringify({ op:\"del\", key: $(\"WH ban-test-del\").item.json.body.key, ok: true }) }}"
+        },
+        "id": "5758e4aa-90a5-4421-8c8b-2df640c3801a",
+        "name": "Respond DEL",
+        "type": "n8n-nodes-base.respondToWebhook",
+        "typeVersion": 1,
+        "position": [
+          440,
+          240
+        ]
+      }
+    ],
+    "connections": {
+      "WH ban-test-get": {
+        "main": [
+          [
+            {
+              "node": "Redis GET",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Redis GET": {
+        "main": [
+          [
+            {
+              "node": "Respond GET",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "WH ban-test-set": {
+        "main": [
+          [
+            {
+              "node": "Redis SET",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Redis SET": {
+        "main": [
+          [
+            {
+              "node": "Respond SET",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "WH ban-test-del": {
+        "main": [
+          [
+            {
+              "node": "Redis DEL",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Redis DEL": {
+        "main": [
+          [
+            {
+              "node": "Respond DEL",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Keimer Montes Oliver",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-04-08T03:53:13.763Z",
+        "id": 182,
+        "workflowId": "ZiM3Zafz5GS4YlWN",
+        "versionId": "a319cbe0-f84b-4bb0-9f3e-ba0beb33e1d4",
+        "event": "deactivated",
+        "userId": "5963f460-3684-486d-8f21-cefca0d4b976"
+      },
+      {
+        "createdAt": "2026-04-08T03:53:13.829Z",
+        "id": 183,
+        "workflowId": "ZiM3Zafz5GS4YlWN",
+        "versionId": "a319cbe0-f84b-4bb0-9f3e-ba0beb33e1d4",
+        "event": "activated",
+        "userId": "5963f460-3684-486d-8f21-cefca0d4b976"
+      },
+      {
+        "createdAt": "2026-04-08T03:53:14.083Z",
+        "id": 184,
+        "workflowId": "ZiM3Zafz5GS4YlWN",
+        "versionId": "a319cbe0-f84b-4bb0-9f3e-ba0beb33e1d4",
+        "event": "deactivated",
+        "userId": "5963f460-3684-486d-8f21-cefca0d4b976"
+      },
+      {
+        "createdAt": "2026-04-08T03:53:14.097Z",
+        "id": 185,
+        "workflowId": "ZiM3Zafz5GS4YlWN",
+        "versionId": "a319cbe0-f84b-4bb0-9f3e-ba0beb33e1d4",
+        "event": "activated",
+        "userId": "5963f460-3684-486d-8f21-cefca0d4b976"
+      }
+    ]
+  }
+}

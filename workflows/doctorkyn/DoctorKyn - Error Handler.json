@@ -1,0 +1,496 @@
+{
+  "updatedAt": "2026-05-11T15:30:22.400Z",
+  "createdAt": "2026-04-07T05:47:33.801Z",
+  "id": "FAOaoPBNYLkpd3gf",
+  "name": "DoctorKyn - Error Handler",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {},
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        -240,
+        0
+      ],
+      "id": "aa000001-0001-0001-0001-000000000001"
+    },
+    {
+      "parameters": {
+        "url": "={{ $env.N8N_HOST }}/api/v1/executions/{{ $json.execution.id }}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-N8N-API-KEY",
+              "value": "={{ $env.N8N_API_KEY }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "name": "Fetch Execution",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        -48,
+        0
+      ],
+      "id": "aa000002-0002-0002-0002-000000000002",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const execData = $input.first().json;\n\nlet waId = null;\ntry {\n  const runData = execData?.data?.resultData?.runData;\n  const waTriggerRun = runData?.['WA Trigger'];\n  waId = waTriggerRun?.[0]?.data?.main?.[0]?.[0]?.json?.contacts?.[0]?.wa_id ?? null;\n} catch (e) {}\n\nconst errorExec = $('Error Trigger').item.json;\n\nreturn [{\n  json: {\n    wa_id: waId,\n    execution_id: errorExec.execution?.id ?? 'unknown',\n    error_message: errorExec.execution?.error?.message ?? 'Unknown error',\n    last_node: errorExec.execution?.lastNodeExecuted ?? 'unknown',\n    workflow_name: errorExec.workflow?.name ?? 'unknown'\n  }\n}];"
+      },
+      "name": "Extract wa_id",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        160,
+        0
+      ],
+      "id": "aa000003-0003-0003-0003-000000000003"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "waid-check-0001-0001",
+              "leftValue": "={{ $json.wa_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "name": "IF wa_id Found",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        368,
+        0
+      ],
+      "id": "aa000005-0005-0005-0005-000000000005"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "541998385660923",
+        "recipientPhoneNumber": "={{ $(\"Extract wa_id\").item.json.wa_id }}",
+        "textBody": "Lo sentimos, estamos experimentando dificultades técnicas. Tu solicitud no pudo procesarse. Por favor, intenta nuevamente en unos minutos. 🙏",
+        "additionalFields": {}
+      },
+      "name": "Patient Fallback",
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [
+        560,
+        -80
+      ],
+      "id": "aa000006-0006-0006-0006-000000000006",
+      "webhookId": "3d4cf93f-07aa-458c-b220-921f493d8362",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "0b2IOSWhlooEpqM9",
+          "name": "WhatsApp Business account ID API"
+        }
+      },
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SLACK_WEBHOOK_OPS }}",
+        "sendBody": true,
+        "specifyBody": "keypairs",
+        "options": {}
+      },
+      "name": "Ops Alert",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [
+        752,
+        64
+      ],
+      "id": "aa000004-0004-0004-0004-000000000004",
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "content": "## DoctorKyn — Error Handler\n\nEste workflow se activa automáticamente cuando el workflow principal (`DoctorKyn - Agendamiento WhatsApp`) lanza una excepción no manejada (falla de OpenAI, MCP, Redis, payload inesperado, etc.).\n\n**Error Trigger** — Punto de entrada. Recibe los metadatos del fallo: ID de ejecución, nodo donde ocurrió, mensaje de error y nombre del workflow.\n\n**Fetch Execution** — Llama a la API de n8n (`GET /api/v1/executions/:id`) para obtener los datos completos de la ejecución fallida, incluyendo el payload original del WA Trigger. `continueOnFail: true` para no bloquear si la API no responde.\n\n**Extract wa_id** — Código JavaScript que navega el árbol de datos de la ejecución para extraer el `wa_id` del paciente desde el output del WA Trigger. Si no lo encuentra, devuelve `null` y el flujo salta el mensaje al paciente.\n\n**IF wa_id Found** — Comprueba si se pudo recuperar el `wa_id`. True → notificar al paciente. False → solo alerta a ops.\n\n**Patient Fallback** — Envía un mensaje de disculpa al paciente por WhatsApp informando la dificultad técnica. `continueOnFail: true` para que un fallo aquí no bloquee la alerta a ops.\n\n**Ops Alert** — POST al webhook de Slack (`$env.SLACK_WEBHOOK_OPS`) con resumen del error: ID de ejecución, nodo fallido, mensaje de error y wa_id del paciente. `continueOnFail: true` — si Slack no está configurado, el flujo termina silenciosamente.",
+        "height": 400,
+        "width": 900
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        -240,
+        -480
+      ],
+      "typeVersion": 1,
+      "id": "bb000099-0099-0099-0099-000000000099",
+      "name": "Sticky Note"
+    }
+  ],
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Fetch Execution",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Execution": {
+      "main": [
+        [
+          {
+            "node": "Extract wa_id",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract wa_id": {
+      "main": [
+        [
+          {
+            "node": "IF wa_id Found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "IF wa_id Found": {
+      "main": [
+        [
+          {
+            "node": "Patient Fallback",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ops Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Patient Fallback": {
+      "main": [
+        [
+          {
+            "node": "Ops Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": false,
+    "binaryMode": "separate"
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": {},
+  "versionId": "0bde7bc2-2c6d-4e25-9b89-e74d762a370c",
+  "activeVersionId": "0bde7bc2-2c6d-4e25-9b89-e74d762a370c",
+  "versionCounter": 32,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-04-07T05:47:33.801Z",
+      "createdAt": "2026-04-07T05:47:33.801Z",
+      "role": "workflow:owner",
+      "workflowId": "FAOaoPBNYLkpd3gf",
+      "projectId": "MfE3ZI64e0dGnFAj",
+      "project": {
+        "updatedAt": "2026-04-03T12:29:07.342Z",
+        "createdAt": "2026-01-16T18:34:08.899Z",
+        "id": "MfE3ZI64e0dGnFAj",
+        "name": "Keimer Montes Oliver <keimermo1989@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "5963f460-3684-486d-8f21-cefca0d4b976"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-04-07T06:19:35.484Z",
+    "createdAt": "2026-04-07T06:19:35.484Z",
+    "versionId": "0bde7bc2-2c6d-4e25-9b89-e74d762a370c",
+    "workflowId": "FAOaoPBNYLkpd3gf",
+    "nodes": [
+      {
+        "parameters": {},
+        "name": "Error Trigger",
+        "type": "n8n-nodes-base.errorTrigger",
+        "typeVersion": 1,
+        "position": [
+          -240,
+          0
+        ],
+        "id": "aa000001-0001-0001-0001-000000000001"
+      },
+      {
+        "parameters": {
+          "url": "={{ $env.N8N_HOST }}/api/v1/executions/{{ $json.execution.id }}",
+          "sendHeaders": true,
+          "headerParameters": {
+            "parameters": [
+              {
+                "name": "X-N8N-API-KEY",
+                "value": "={{ $env.N8N_API_KEY }}"
+              }
+            ]
+          },
+          "options": {}
+        },
+        "name": "Fetch Execution",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.1,
+        "position": [
+          -48,
+          0
+        ],
+        "id": "aa000002-0002-0002-0002-000000000002",
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "jsCode": "const execData = $input.first().json;\n\nlet waId = null;\ntry {\n  const runData = execData?.data?.resultData?.runData;\n  const waTriggerRun = runData?.['WA Trigger'];\n  waId = waTriggerRun?.[0]?.data?.main?.[0]?.[0]?.json?.contacts?.[0]?.wa_id ?? null;\n} catch (e) {}\n\nconst errorExec = $('Error Trigger').item.json;\n\nreturn [{\n  json: {\n    wa_id: waId,\n    execution_id: errorExec.execution?.id ?? 'unknown',\n    error_message: errorExec.execution?.error?.message ?? 'Unknown error',\n    last_node: errorExec.execution?.lastNodeExecuted ?? 'unknown',\n    workflow_name: errorExec.workflow?.name ?? 'unknown'\n  }\n}];"
+        },
+        "name": "Extract wa_id",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          160,
+          0
+        ],
+        "id": "aa000003-0003-0003-0003-000000000003"
+      },
+      {
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict"
+            },
+            "conditions": [
+              {
+                "id": "waid-check-0001-0001",
+                "leftValue": "={{ $json.wa_id }}",
+                "rightValue": "",
+                "operator": {
+                  "type": "string",
+                  "operation": "notEmpty",
+                  "singleValue": true
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "name": "IF wa_id Found",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          368,
+          0
+        ],
+        "id": "aa000005-0005-0005-0005-000000000005"
+      },
+      {
+        "parameters": {
+          "operation": "send",
+          "phoneNumberId": "541998385660923",
+          "recipientPhoneNumber": "={{ $(\"Extract wa_id\").item.json.wa_id }}",
+          "textBody": "Lo sentimos, estamos experimentando dificultades técnicas. Tu solicitud no pudo procesarse. Por favor, intenta nuevamente en unos minutos. 🙏",
+          "additionalFields": {}
+        },
+        "name": "Patient Fallback",
+        "type": "n8n-nodes-base.whatsApp",
+        "typeVersion": 1,
+        "position": [
+          560,
+          -80
+        ],
+        "id": "aa000006-0006-0006-0006-000000000006",
+        "webhookId": "3d4cf93f-07aa-458c-b220-921f493d8362",
+        "credentials": {
+          "whatsAppApi": {
+            "id": "0b2IOSWhlooEpqM9",
+            "name": "WhatsApp Business account ID API"
+          }
+        },
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "method": "POST",
+          "url": "={{ $env.SLACK_WEBHOOK_OPS }}",
+          "sendBody": true,
+          "specifyBody": "keypairs",
+          "options": {}
+        },
+        "name": "Ops Alert",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.1,
+        "position": [
+          752,
+          64
+        ],
+        "id": "aa000004-0004-0004-0004-000000000004",
+        "continueOnFail": true
+      },
+      {
+        "parameters": {
+          "content": "## DoctorKyn — Error Handler\n\nEste workflow se activa automáticamente cuando el workflow principal (`DoctorKyn - Agendamiento WhatsApp`) lanza una excepción no manejada (falla de OpenAI, MCP, Redis, payload inesperado, etc.).\n\n**Error Trigger** — Punto de entrada. Recibe los metadatos del fallo: ID de ejecución, nodo donde ocurrió, mensaje de error y nombre del workflow.\n\n**Fetch Execution** — Llama a la API de n8n (`GET /api/v1/executions/:id`) para obtener los datos completos de la ejecución fallida, incluyendo el payload original del WA Trigger. `continueOnFail: true` para no bloquear si la API no responde.\n\n**Extract wa_id** — Código JavaScript que navega el árbol de datos de la ejecución para extraer el `wa_id` del paciente desde el output del WA Trigger. Si no lo encuentra, devuelve `null` y el flujo salta el mensaje al paciente.\n\n**IF wa_id Found** — Comprueba si se pudo recuperar el `wa_id`. True → notificar al paciente. False → solo alerta a ops.\n\n**Patient Fallback** — Envía un mensaje de disculpa al paciente por WhatsApp informando la dificultad técnica. `continueOnFail: true` para que un fallo aquí no bloquee la alerta a ops.\n\n**Ops Alert** — POST al webhook de Slack (`$env.SLACK_WEBHOOK_OPS`) con resumen del error: ID de ejecución, nodo fallido, mensaje de error y wa_id del paciente. `continueOnFail: true` — si Slack no está configurado, el flujo termina silenciosamente.",
+          "height": 400,
+          "width": 900
+        },
+        "type": "n8n-nodes-base.stickyNote",
+        "position": [
+          -240,
+          -480
+        ],
+        "typeVersion": 1,
+        "id": "bb000099-0099-0099-0099-000000000099",
+        "name": "Sticky Note"
+      }
+    ],
+    "connections": {
+      "Error Trigger": {
+        "main": [
+          [
+            {
+              "node": "Fetch Execution",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Fetch Execution": {
+        "main": [
+          [
+            {
+              "node": "Extract wa_id",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Extract wa_id": {
+        "main": [
+          [
+            {
+              "node": "IF wa_id Found",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF wa_id Found": {
+        "main": [
+          [
+            {
+              "node": "Patient Fallback",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Ops Alert",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Patient Fallback": {
+        "main": [
+          [
+            {
+              "node": "Ops Alert",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Keimer Montes Oliver",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-04-07T06:19:35.514Z",
+        "id": 139,
+        "workflowId": "FAOaoPBNYLkpd3gf",
+        "versionId": "0bde7bc2-2c6d-4e25-9b89-e74d762a370c",
+        "event": "deactivated",
+        "userId": "5963f460-3684-486d-8f21-cefca0d4b976"
+      },
+      {
+        "createdAt": "2026-04-07T06:19:35.524Z",
+        "id": 140,
+        "workflowId": "FAOaoPBNYLkpd3gf",
+        "versionId": "0bde7bc2-2c6d-4e25-9b89-e74d762a370c",
+        "event": "activated",
+        "userId": "5963f460-3684-486d-8f21-cefca0d4b976"
+      },
+      {
+        "createdAt": "2026-04-07T06:19:35.777Z",
+        "id": 141,
+        "workflowId": "FAOaoPBNYLkpd3gf",
+        "versionId": "0bde7bc2-2c6d-4e25-9b89-e74d762a370c",
+        "event": "deactivated",
+        "userId": "5963f460-3684-486d-8f21-cefca0d4b976"
+      },
+      {
+        "createdAt": "2026-04-07T06:19:35.786Z",
+        "id": 142,
+        "workflowId": "FAOaoPBNYLkpd3gf",
+        "versionId": "0bde7bc2-2c6d-4e25-9b89-e74d762a370c",
+        "event": "activated",
+        "userId": "5963f460-3684-486d-8f21-cefca0d4b976"
+      }
+    ]
+  }
+}
