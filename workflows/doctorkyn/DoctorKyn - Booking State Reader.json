@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-11T20:20:29.518Z",
+  "updatedAt": "2026-05-11T20:49:33.498Z",
   "createdAt": "2026-05-11T19:48:49.008Z",
   "id": "jXdJK4q9U32OR95O",
   "name": "DoctorKyn - Booking State Reader",
@@ -109,14 +109,15 @@
     "saveDataErrorExecution": "all",
     "saveDataSuccessExecution": "all",
     "saveManualExecutions": true,
-    "saveExecutionProgress": true
+    "saveExecutionProgress": true,
+    "callerPolicy": "any"
   },
   "staticData": null,
   "meta": null,
   "pinData": null,
-  "versionId": "21f0b8d1-38dd-4ee2-8864-7a5a1cdfdae9",
-  "activeVersionId": "21f0b8d1-38dd-4ee2-8864-7a5a1cdfdae9",
-  "versionCounter": 9,
+  "versionId": "997989a5-0576-4636-a166-41be3d72d00a",
+  "activeVersionId": "997989a5-0576-4636-a166-41be3d72d00a",
+  "versionCounter": 21,
   "triggerCount": 0,
   "shared": [
     {
@@ -139,9 +140,9 @@
   ],
   "tags": [],
   "activeVersion": {
-    "updatedAt": "2026-05-11T20:20:29.520Z",
-    "createdAt": "2026-05-11T20:20:29.520Z",
-    "versionId": "21f0b8d1-38dd-4ee2-8864-7a5a1cdfdae9",
+    "updatedAt": "2026-05-11T20:49:33.500Z",
+    "createdAt": "2026-05-11T20:49:33.500Z",
+    "versionId": "997989a5-0576-4636-a166-41be3d72d00a",
     "workflowId": "jXdJK4q9U32OR95O",
     "nodes": [
       {
@@ -247,10 +248,18 @@
     "autosaved": false,
     "workflowPublishHistory": [
       {
-        "createdAt": "2026-05-11T20:20:30.316Z",
-        "id": 211,
+        "createdAt": "2026-05-11T20:49:33.522Z",
+        "id": 253,
         "workflowId": "jXdJK4q9U32OR95O",
-        "versionId": "21f0b8d1-38dd-4ee2-8864-7a5a1cdfdae9",
+        "versionId": "997989a5-0576-4636-a166-41be3d72d00a",
+        "event": "deactivated",
+        "userId": "5963f460-3684-486d-8f21-cefca0d4b976"
+      },
+      {
+        "createdAt": "2026-05-11T20:49:33.531Z",
+        "id": 254,
+        "workflowId": "jXdJK4q9U32OR95O",
+        "versionId": "997989a5-0576-4636-a166-41be3d72d00a",
         "event": "activated",
         "userId": "5963f460-3684-486d-8f21-cefca0d4b976"
       }

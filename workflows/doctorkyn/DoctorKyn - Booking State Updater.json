@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-11T20:19:47.130Z",
+  "updatedAt": "2026-05-11T20:49:48.225Z",
   "createdAt": "2026-05-11T19:57:11.744Z",
   "id": "MJc8ivr0PrTyHPIP",
   "name": "DoctorKyn - Booking State Updater",
@@ -273,14 +273,15 @@
     }
   },
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "callerPolicy": "any"
   },
   "staticData": null,
   "meta": null,
   "pinData": null,
-  "versionId": "72d47674-cf89-4295-9810-49631f310691",
-  "activeVersionId": "72d47674-cf89-4295-9810-49631f310691",
-  "versionCounter": 7,
+  "versionId": "2ee4881d-1a1e-46cf-823a-044a1106234f",
+  "activeVersionId": "2ee4881d-1a1e-46cf-823a-044a1106234f",
+  "versionCounter": 43,
   "triggerCount": 0,
   "shared": [
     {
@@ -303,9 +304,9 @@
   ],
   "tags": [],
   "activeVersion": {
-    "updatedAt": "2026-05-11T20:09:12.884Z",
-    "createdAt": "2026-05-11T20:09:12.884Z",
-    "versionId": "72d47674-cf89-4295-9810-49631f310691",
+    "updatedAt": "2026-05-11T20:49:48.226Z",
+    "createdAt": "2026-05-11T20:49:48.226Z",
+    "versionId": "2ee4881d-1a1e-46cf-823a-044a1106234f",
     "workflowId": "MJc8ivr0PrTyHPIP",
     "nodes": [
       {
@@ -579,10 +580,18 @@
     "autosaved": false,
     "workflowPublishHistory": [
       {
-        "createdAt": "2026-05-11T20:19:47.455Z",
-        "id": 210,
+        "createdAt": "2026-05-11T20:49:49.005Z",
+        "id": 255,
         "workflowId": "MJc8ivr0PrTyHPIP",
-        "versionId": "72d47674-cf89-4295-9810-49631f310691",
+        "versionId": "2ee4881d-1a1e-46cf-823a-044a1106234f",
+        "event": "deactivated",
+        "userId": "5963f460-3684-486d-8f21-cefca0d4b976"
+      },
+      {
+        "createdAt": "2026-05-11T20:49:49.013Z",
+        "id": 256,
+        "workflowId": "MJc8ivr0PrTyHPIP",
+        "versionId": "2ee4881d-1a1e-46cf-823a-044a1106234f",
         "event": "activated",
         "userId": "5963f460-3684-486d-8f21-cefca0d4b976"
       }
