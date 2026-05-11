@@ -44,6 +44,7 @@ The logic is split into two sub-workflows following the CQRS pattern:
   "time_slot":   null,
   "schedule_id": null,
   "price":       null,
+  "receipt_id":  null,
   "status":      "collecting"
 }
 ```
@@ -59,6 +60,7 @@ The logic is split into two sub-workflows following the CQRS pattern:
 | `time_slot`   | string \| null  | Appointment time `HH:MM`                           |
 | `schedule_id` | string \| null  | Schedule ID from `get_time_slots` MCP tool         |
 | `price`       | number \| null  | Final price after discounts                        |
+| `receipt_id`  | string \| null  | Receipt ID returned by `book_appointment` MCP tool |
 | `status`      | string          | `collecting` \| `confirming` \| `booked` \| `cancelled` |
 
 ### Cascade dependency chain
