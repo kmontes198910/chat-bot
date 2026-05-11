@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-11T19:57:11.744Z",
+  "updatedAt": "2026-05-11T20:04:53.474Z",
   "createdAt": "2026-05-11T19:57:11.744Z",
   "id": "MJc8ivr0PrTyHPIP",
   "name": "DoctorKyn - Booking State Updater",
@@ -62,7 +62,7 @@
         0
       ],
       "parameters": {
-        "jsCode": "const trigger = $('When Executed by Another Workflow').item.json;\nconst agentOutput = trigger.agentOutput || '';\nconst inputText   = trigger.inputText   || '';\n\nconst userMessage = `PATIENT INPUT:\\n${inputText}\\n\\nASSISTANT RESPONSE:\\n${agentOutput}`;\n\nreturn [{ json: {\n  currentState: $('Parse Current State').item.json.currentState,\n  extractionUserMessage: userMessage\n} }];"
+        "jsCode": "const trigger = $('When Executed by Another Workflow').item.json;\nconst agentOutput = trigger.agentOutput || '';\nconst inputText   = trigger.inputText   || '';\n\nconst userMessage = `PATIENT INPUT:\\n${inputText}\\n\\nASSISTANT RESPONSE:\\n${agentOutput}`;\n\n// Pre-encode the user message so it is safe to embed in JSON strings\nconst userMessageEncoded = JSON.stringify(userMessage);\n\nreturn [{ json: {\n  currentState: $('Parse Current State').item.json.currentState,\n  extractionUserMessage: userMessage,\n  extractionUserMessageEncoded: userMessageEncoded\n} }];"
       },
       "id": "e5b43a7e-2971-4250-a8e6-0dce28c10c39"
     },
@@ -81,7 +81,7 @@
         "nodeCredentialType": "openAiApi",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"model\": \"gpt-4.1-mini\",\n  \"temperature\": 0,\n  \"max_tokens\": 200,\n  \"response_format\": { \"type\": \"json_object\" },\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are a structured data extractor for a medical appointment booking system.\\n\\nGiven one conversational turn (patient input + assistant response), extract ONLY the fields that were explicitly confirmed in this turn. Do NOT carry over previous values — return null for anything not confirmed in this specific exchange.\\n\\nReturn valid JSON only, no explanation:\\n{\\n  \\\"cedula\\\": string | null,\\n  \\\"service\\\": string | null,\\n  \\\"clinic\\\": string | null,\\n  \\\"date\\\": string | null,\\n  \\\"time_slot\\\": string | null,\\n  \\\"schedule_id\\\": string | null,\\n  \\\"price\\\": number | null,\\n  \\\"receipt_id\\\": string | null,\\n  \\\"status\\\": \\\"collecting\\\" | \\\"confirming\\\" | \\\"booked\\\" | \\\"cancelled\\\" | null,\\n  \\\"newBookingConfirmed\\\": boolean\\n}\\n\\nnewBookingConfirmed must be true ONLY if the patient explicitly confirmed starting a new booking while a previous one is already booked. Default false.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"={{ $json.extractionUserMessage }}\"\n    }\n  ]\n}",
+        "jsonBody": "={\"model\":\"gpt-4.1-mini\",\"temperature\":0,\"max_tokens\":200,\"response_format\":{\"type\":\"json_object\"},\"messages\":[{\"role\":\"system\",\"content\":\"You are a structured data extractor for a medical appointment booking system.\\n\\nGiven one conversational turn (patient input + assistant response), extract ONLY the fields that were explicitly confirmed in this turn. Do NOT carry over previous values \u2014 return null for anything not confirmed in this specific exchange.\\n\\nReturn valid JSON only, no explanation:\\n{\\n  \\\"cedula\\\": string | null,\\n  \\\"service\\\": string | null,\\n  \\\"clinic\\\": string | null,\\n  \\\"date\\\": string | null,\\n  \\\"time_slot\\\": string | null,\\n  \\\"schedule_id\\\": string | null,\\n  \\\"price\\\": number | null,\\n  \\\"receipt_id\\\": string | null,\\n  \\\"status\\\": \\\"collecting\\\" | \\\"confirming\\\" | \\\"booked\\\" | \\\"cancelled\\\" | null,\\n  \\\"newBookingConfirmed\\\": boolean\\n}\\n\\nnewBookingConfirmed must be true ONLY if the patient explicitly confirmed starting a new booking while a previous one is already booked. Default false.\"},{\"role\":\"user\",\"content\":{{ $json.extractionUserMessageEncoded }}}]}",
         "options": {}
       },
       "credentials": {
@@ -101,7 +101,7 @@
         0
       ],
       "parameters": {
-        "jsCode": "const DOWNSTREAM = {\n  service:   ['clinic', 'date', 'time_slot', 'schedule_id', 'price'],\n  clinic:    ['date', 'time_slot', 'schedule_id', 'price'],\n  date:      ['time_slot', 'schedule_id'],\n  time_slot: ['schedule_id'],\n};\n\nconst current = $('Parse Current State').item.json.currentState;\nconst FIELDS = ['cedula','service','clinic','date','time_slot','schedule_id','price','receipt_id','status'];\n\nlet extracted;\ntry {\n  const raw = $input.first().json.choices[0].message.content;\n  extracted = JSON.parse(raw);\n} catch(e) {\n  return [{ json: { bookingState: current, skipWrite: true } }];\n}\n\nif (current.status === 'booked') {\n  if (extracted.newBookingConfirmed === true) {\n    const fresh = {\n      cedula: null, service: null, clinic: null,\n      date: null, time_slot: null, schedule_id: null,\n      price: null, receipt_id: null, status: 'collecting'\n    };\n    for (const f of FIELDS) {\n      if (extracted[f] !== null && extracted[f] !== undefined) {\n        fresh[f] = extracted[f];\n      }\n    }\n    return [{ json: { bookingState: fresh, skipWrite: false } }];\n  } else {\n    return [{ json: { bookingState: current, skipWrite: false } }];\n  }\n}\n\nconst merged = { ...current };\nfor (const field of FIELDS) {\n  const newVal = extracted[field];\n  if (newVal === null || newVal === undefined) continue;\n  const oldVal = merged[field];\n  if (oldVal !== null && oldVal !== newVal && DOWNSTREAM[field]) {\n    for (const ds of DOWNSTREAM[field]) {\n      merged[ds] = null;\n    }\n  }\n  merged[field] = newVal;\n}\n\nreturn [{ json: { bookingState: merged, skipWrite: false } }];"
+        "jsCode": "const DOWNSTREAM = {\n  service:   ['clinic', 'date', 'time_slot', 'schedule_id', 'price'],\n  clinic:    ['date', 'time_slot', 'schedule_id', 'price'],\n  date:      ['time_slot', 'schedule_id'],\n  time_slot: ['schedule_id'],\n};\n\nconst current = $('Parse Current State').item.json.currentState;\nconst FIELDS = ['cedula','service','clinic','date','time_slot','schedule_id','price','receipt_id','status'];\n\n// Normalise LLM \"null\" string to JS null\nfunction norm(v) {\n  if (v === null || v === undefined) return null;\n  if (typeof v === 'string' && v.trim().toLowerCase() === 'null') return null;\n  return v;\n}\n\nlet extracted;\ntry {\n  const raw = $input.first().json.choices[0].message.content;\n  extracted = JSON.parse(raw);\n} catch(e) {\n  return [{ json: { bookingState: current, skipWrite: true, errorReason: e.message } }];\n}\n\n// Gate: booked status\nif (current.status === 'booked') {\n  if (extracted.newBookingConfirmed === true) {\n    const fresh = {\n      cedula: null, service: null, clinic: null,\n      date: null, time_slot: null, schedule_id: null,\n      price: null, receipt_id: null, status: 'collecting'\n    };\n    for (const f of FIELDS) {\n      const v = norm(extracted[f]);\n      if (v !== null) fresh[f] = v;\n    }\n    // Safety: if LLM set status=booked in same turn, reset it to collecting\n    if (fresh.status === 'booked') fresh.status = 'collecting';\n    return [{ json: { bookingState: fresh, skipWrite: false } }];\n  } else {\n    return [{ json: { bookingState: current, skipWrite: false } }];\n  }\n}\n\n// Normal flow\nconst merged = { ...current };\nfor (const field of FIELDS) {\n  const newVal = norm(extracted[field]);\n  if (newVal === null) continue;\n  const oldVal = merged[field];\n  if (oldVal !== null && oldVal !== newVal && DOWNSTREAM[field]) {\n    for (const ds of DOWNSTREAM[field]) {\n      merged[ds] = null;\n    }\n  }\n  merged[field] = newVal;\n}\n\n// Safety: if merged status became \"booked\" in this turn, the booked gate\n// will apply on the NEXT turn. No action needed here.\n\nreturn [{ json: { bookingState: merged, skipWrite: false } }];"
       },
       "id": "24bac9d6-1883-40eb-97f3-e285eb86b656"
     },
@@ -277,9 +277,9 @@
   "staticData": null,
   "meta": null,
   "pinData": null,
-  "versionId": "feee9a70-3405-4439-916a-519596dc6a0f",
+  "versionId": "a1a4edb9-23d9-40e6-a579-bc5da1bfdaec",
   "activeVersionId": null,
-  "versionCounter": 1,
+  "versionCounter": 3,
   "triggerCount": 0,
   "shared": [
     {
