@@ -80,7 +80,9 @@ time_slot  → clears: schedule_id
 - **Ambiguous change** (patient implies a change without stating a new value explicitly, e.g.
   "something closer to home") → field is set to `"conflict"` so the agent sees it and resolves it
   in conversation.
-- **Booked status** → state is read-only; no field changes are applied.
+- **Any status other than `booked`** → flow continues normally, no gate, no interruption.
+- **Booked status** → confirmation gate applies (see below). All other field changes are ignored
+  until the gate resolves.
 
 ---
 
@@ -165,14 +167,16 @@ anything not confirmed in this specific exchange.
 
 Return valid JSON only, no explanation:
 {
-  "cedula":      string | null,
-  "service":     string | null,
-  "clinic":      string | null,
-  "date":        string | null,   // YYYY-MM-DD
-  "time_slot":   string | null,   // HH:MM
-  "schedule_id": string | null,
-  "price":       number | null,
-  "status":      "collecting" | "confirming" | "booked" | "cancelled" | null
+  "cedula":               string | null,
+  "service":              string | null,
+  "clinic":               string | null,
+  "date":                 string | null,   // YYYY-MM-DD
+  "time_slot":            string | null,   // HH:MM
+  "schedule_id":          string | null,
+  "price":                number | null,
+  "status":               "collecting" | "confirming" | "booked" | "cancelled" | null,
+  "newBookingConfirmed":  boolean         // true ONLY if patient explicitly confirmed starting
+                                          // a new booking while a previous one is already booked
 }
 ```
 
@@ -188,14 +192,40 @@ DOWNSTREAM = {
   time_slot:  [schedule_id],
 }
 
-for each extracted field with a non-null value:
-  if current[field] !== null AND current[field] !== extracted[field]:
-    if field in DOWNSTREAM:
-      clear all downstream fields to null   // obvious cascade
-  merge extracted[field] into current state
-
+// Gate: only applies when previous status was "booked"
 if current.status === "booked":
-  discard all changes, return current state unchanged
+  if extracted.newBookingConfirmed === true:
+    reset all fields to null, set status = "collecting"
+    apply extracted fields to fresh state
+  else:
+    discard all changes, return current state unchanged  // patient is just inquiring
+  end
+else:
+  // Normal flow — any status other than "booked" continues without gate
+  for each extracted field with a non-null value:
+    if current[field] !== null AND current[field] !== extracted[field]:
+      if field in DOWNSTREAM:
+        clear all downstream fields to null   // obvious cascade
+    merge extracted[field] into current state
+  end
+```
+
+**`newBookingConfirmed` flag:** the LLM extractor sets this to `true` only when the patient
+explicitly confirms they want to start a new booking (e.g. "sí, quiero agendar otra cita",
+"también necesito una para optometría y confirmo que es nueva"). Inquiries about the existing
+appointment ("¿a qué hora era mi cita?") leave it `false`.
+
+**Reader behaviour when status is `booked`:** the formatted state block includes both the completed
+booking summary and a prompt for the agent:
+
+```
+## RESERVA COMPLETADA
+- Servicio:    Cardiología
+- Recibo:      REC-12345
+- Estado:      booked
+
+Si el paciente quiere agendar una nueva cita, pedile confirmación explícita antes de continuar.
+Solo cuando confirme, el sistema reseteará el estado para la nueva reserva.
 ```
 
 Ambiguous conflicts (field stays as-is but downstream may be invalid) are left for the agent to
@@ -282,4 +312,6 @@ No new credentials required.
 - Persisting booked appointment state beyond the 2h TTL (long-term storage belongs in the MCP
   calendar service, not in this workflow layer).
 - Proactive session resume (notifying a patient about an incomplete booking after session expiry).
-- Multi-appointment support within a single session.
+- Multi-appointment support within a single session — a new booking resets the state completely;
+  the previous booking details are not retained in Redis after the reset (they are already persisted
+  in the MCP calendar service via `receiptId`).
