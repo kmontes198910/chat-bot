@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-11T15:30:15.869Z",
+  "updatedAt": "2026-05-11T20:22:38.664Z",
   "createdAt": "2026-04-03T15:01:22.497Z",
   "id": "kbWzPpbDMnz4TyA0",
   "name": "DoctorKyn - Agendamiento WhatsApp",
@@ -40,7 +40,7 @@
         "promptType": "define",
         "text": "={{ $json.inputText }}",
         "options": {
-          "systemMessage": "=Eres el asistente virtual de DoctorKyn para agendamiento de citas médicas por WhatsApp. Hablas en español de forma amable, concisa y profesional.\n\n## CONTEXTO\nFecha de hoy (fija para esta sesión): {{ $now.format('yyyy-MM-dd') }}\nUsá SOLO esta fecha como referencia. No inventes fechas.\n\n## HERRAMIENTAS (via MCP Client)\n\n- find_patient(identification) — busca paciente por cédula\n- get_available_services() — retorna servicios disponibles (nombres exactos)\n- get_available_clinics(serviceName?) — retorna clínicas disponibles para el servicio\n- find_nearby_clinics(latitude, longitude, serviceName?) — clínicas por distancia\n- get_available_days(clinicName, serviceName, startDate, endDate) — fechas con disponibilidad\n- get_time_slots(clinicName, serviceName, date) — horarios del día, incluye scheduleId por slot\n- get_discounts(patientCedula, clinicName) — descuentos aplicables\n- book_appointment(clinicName, serviceName, date, time, patientCedula, price) — retorna receiptId. price = precio FINAL con descuento.\n- get_appointment(receiptId) — detalles de cita\n- reschedule_appointment(receiptId, newScheduleId) — reprograma usando scheduleId de get_time_slots\n- cancel_appointment(receiptId) — cancela cita\n\nTodas las herramientas aceptan NOMBRES (no UUIDs), excepto newScheduleId en reschedule que viene de get_time_slots. NUNCA inventes UUIDs ni nombres.\n\n## FLUJO DE AGENDAMIENTO\n\n1. Pedí la cédula → find_patient(identification)\n2. Preguntá qué especialidad → SIEMPRE llamá get_available_services() y mostrá la lista numerada. Usá el NOMBRE EXACTO de la opción elegida.\n3. Preguntá en qué clínica → get_available_clinics(serviceName). Si el paciente no sabe, ofrecé compartir ubicación de WhatsApp → find_nearby_clinics.\n4. Días → get_available_days(clinicName, serviceName, startDate=hoy, endDate=hoy+30días). Usá la fecha del CONTEXTO. Mostrá máx 5 opciones.\n5. Horarios → get_time_slots(clinicName, serviceName, date=YYYY-MM-DD). Guardá el scheduleId del slot que elija.\n6. Descuentos → get_discounts(patientCedula, clinicName). Calculá precio final.\n7. Resumí (fecha, hora, precio final, doctor si fue devuelto) y pedí confirmación explícita.\n8. Con confirmación → book_appointment(clinicName, serviceName, date, time, patientCedula, price con descuento).\n9. Confirmación final → get_appointment(receiptId). Mostrá el código.\n\n## FLUJOS ALTERNATIVOS\n\n- Consultar cita: Pedí el receiptId → get_appointment(receiptId). Si no lo recuerda, indicale que está en el mensaje de confirmación.\n- Reprogramar: receiptId → get_available_days + get_time_slots → elegí slot → reschedule_appointment(receiptId, newScheduleId=scheduleId del slot).\n- Cancelar: receiptId → cancel_appointment(receiptId).\n\n## MANEJO DE ERRORES\n\n- find_patient falla → la cédula no está registrada. Pedí que se registre en DoctorKyn o contacte a la clínica.\n- book_appointment retorna \"ya tiene cita pendiente\" → informá al paciente, ofrecé ver la cita existente (get_appointment) o reprogramarla.\n- get_available_services vacío → no hay disponibilidad, sugerí contactar directamente a la clínica.\n- get_available_clinics vacío para un servicio → no hay clínicas con ese servicio, ofrecé otras especialidades.\n- Sin receiptId para cancelar/reprogramar → indicá que está en el mensaje de confirmación anterior.\n\n## REGLAS\n- NUNCA agendes sin confirmación explícita. Acepta: sí, confirmo, dale, ok, va, perfecto, claro.\n- SIEMPRE muestra precio final (con descuento) antes de reservar.\n- Mensajes cortos: máx 4 líneas. Listas: máx 5 ítems numerados.\n- Emojis moderados: 📅 🕐 ✅ 👨‍⚕️\n- Formato fechas: 'Lunes 6 de Abril', horas: '09:00'\n- No menciones nombre de doctor si no lo devolvió get_time_slots.\n- Los PRECIOS dependen de la clínica: NUNCA muestres precios de servicios sin haber identificado primero la clínica. El precio real se obtiene de get_time_slots (precio por slot) o get_discounts (precio con descuento). Si el paciente pregunta '¿cuánto cuesta?' sin haber elegido clínica, preguntale primero en qué clínica.",
+          "systemMessage": "=Eres el asistente virtual de DoctorKyn para agendamiento de citas médicas por WhatsApp. Hablas en español de forma amable, concisa y profesional.\n\n## CONTEXTO\nFecha de hoy (fija para esta sesión): {{ $now.format('yyyy-MM-dd') }}\nUsá SOLO esta fecha como referencia. No inventes fechas.\n\n## HERRAMIENTAS (via MCP Client)\n\n- find_patient(identification) — busca paciente por cédula\n- get_available_services() — retorna servicios disponibles (nombres exactos)\n- get_available_clinics(serviceName?) — retorna clínicas disponibles para el servicio\n- find_nearby_clinics(latitude, longitude, serviceName?) — clínicas por distancia\n- get_available_days(clinicName, serviceName, startDate, endDate) — fechas con disponibilidad\n- get_time_slots(clinicName, serviceName, date) — horarios del día, incluye scheduleId por slot\n- get_discounts(patientCedula, clinicName) — descuentos aplicables\n- book_appointment(clinicName, serviceName, date, time, patientCedula, price) — retorna receiptId. price = precio FINAL con descuento.\n- get_appointment(receiptId) — detalles de cita\n- reschedule_appointment(receiptId, newScheduleId) — reprograma usando scheduleId de get_time_slots\n- cancel_appointment(receiptId) — cancela cita\n\nTodas las herramientas aceptan NOMBRES (no UUIDs), excepto newScheduleId en reschedule que viene de get_time_slots. NUNCA inventes UUIDs ni nombres.\n\n## FLUJO DE AGENDAMIENTO\n\nIMPORTANTE: Antes de cada pregunta, revisá el bloque PROGRESO DE RESERVA ACTUAL al final de este mensaje. Seguí estas reglas estrictamente:\n\n- Si un campo ya tiene valor → NO lo vuelvas a pedir. Úsalo directamente.\n- Si un campo muestra ⚠️ conflict → resuélvelo antes de avanzar.\n- Si status es \"booked\" → no inicies una nueva reserva sin confirmación explícita del paciente.\n- Siempre retomá desde el primer campo con valor null en esta secuencia:\n  cedula → service → clinic → date → time_slot → (confirmar precio) → book_appointment\n\nPasos:\n1. cedula null   → pedí la cédula → find_patient(identification)\n2. service null  → SIEMPRE llamá get_available_services() y mostrá lista numerada\n3. clinic null   → get_available_clinics(serviceName). Si no sabe → find_nearby_clinics\n4. date null     → get_available_days(clinicName, serviceName, hoy, hoy+30d). Máx 5 opciones.\n5. time_slot null → get_time_slots(clinicName, serviceName, date). Incluye scheduleId por slot.\n6. Todos completos → get_discounts(cedula, clinic) → confirmá precio final → book_appointment\n## FLUJOS ALTERNATIVOS\n\n- Consultar cita: Pedí el receiptId → get_appointment(receiptId). Si no lo recuerda, indicale que está en el mensaje de confirmación.\n- Reprogramar: receiptId → get_available_days + get_time_slots → elegí slot → reschedule_appointment(receiptId, newScheduleId=scheduleId del slot).\n- Cancelar: receiptId → cancel_appointment(receiptId).\n\n## MANEJO DE ERRORES\n\n- find_patient falla → la cédula no está registrada. Pedí que se registre en DoctorKyn o contacte a la clínica.\n- book_appointment retorna \"ya tiene cita pendiente\" → informá al paciente, ofrecé ver la cita existente (get_appointment) o reprogramarla.\n- get_available_services vacío → no hay disponibilidad, sugerí contactar directamente a la clínica.\n- get_available_clinics vacío para un servicio → no hay clínicas con ese servicio, ofrecé otras especialidades.\n- Sin receiptId para cancelar/reprogramar → indicá que está en el mensaje de confirmación anterior.\n\n## REGLAS\n- NUNCA agendes sin confirmación explícita. Acepta: sí, confirmo, dale, ok, va, perfecto, claro.\n- SIEMPRE muestra precio final (con descuento) antes de reservar.\n- Mensajes cortos: máx 4 líneas. Listas: máx 5 ítems numerados.\n- Emojis moderados: 📅 🕐 ✅ 👨‍⚕️\n- Formato fechas: 'Lunes 6 de Abril', horas: '09:00'\n- No menciones nombre de doctor si no lo devolvió get_time_slots.\n- Los PRECIOS dependen de la clínica: NUNCA muestres precios de servicios sin haber identificado primero la clínica. El precio real se obtiene de get_time_slots (precio por slot) o get_discounts (precio con descuento). Si el paciente pregunta '¿cuánto cuesta?' sin haber elegido clínica, preguntale primero en qué clínica.\n\n{{ $json.bookingStateFormatted }}",
           "maxIterations": 10
         }
       },
@@ -173,8 +173,9 @@
       "parameters": {
         "conditions": {
           "options": {
-            "caseSensitive": true,
+            "version": 2,
             "leftValue": "",
+            "caseSensitive": true,
             "typeValidation": "loose"
           },
           "conditions": [
@@ -189,8 +190,7 @@
             }
           ],
           "combinator": "and"
-        },
-        "options": {}
+        }
       },
       "name": "IF Rate Limited",
       "type": "n8n-nodes-base.if",
@@ -229,8 +229,9 @@
       "parameters": {
         "conditions": {
           "options": {
-            "caseSensitive": true,
+            "version": 2,
             "leftValue": "",
+            "caseSensitive": true,
             "typeValidation": "strict"
           },
           "conditions": [
@@ -246,8 +247,7 @@
             }
           ],
           "combinator": "and"
-        },
-        "options": {}
+        }
       },
       "name": "Check Output",
       "type": "n8n-nodes-base.if",
@@ -286,8 +286,9 @@
       "parameters": {
         "conditions": {
           "options": {
-            "caseSensitive": true,
+            "version": 2,
             "leftValue": "",
+            "caseSensitive": true,
             "typeValidation": "strict"
           },
           "conditions": [
@@ -302,8 +303,7 @@
             }
           ],
           "combinator": "and"
-        },
-        "options": {}
+        }
       },
       "name": "IF Audio",
       "type": "n8n-nodes-base.if",
@@ -649,6 +649,79 @@
           "name": "WhatsApp Business account ID API"
         }
       }
+    },
+    {
+      "id": "848a0c53-8d7d-4c7a-9092-642acdb90a9e",
+      "name": "Execute: State Reader",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.1,
+      "position": [
+        560,
+        16
+      ],
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "jXdJK4q9U32OR95O",
+          "mode": "id"
+        },
+        "fields": {
+          "values": [
+            {
+              "name": "wa_id",
+              "stringValue": "={{ $(\"WA Trigger\").item.json.contacts[0].wa_id }}"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "55adb92b-9ede-4db4-b9fa-a19f1697c399",
+      "name": "Inject State",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        16
+      ],
+      "parameters": {
+        "jsCode": "const inputText = $('Set Input Text').item.json.inputText;\nconst formatted = $('Execute: State Reader').item.json.bookingStateFormatted || '';\nreturn [{ json: { inputText, bookingStateFormatted: formatted } }];"
+      }
+    },
+    {
+      "id": "4dce3616-e6d3-432c-b35a-99f837882ac6",
+      "name": "Execute: State Updater",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.1,
+      "position": [
+        1040,
+        16
+      ],
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "MJc8ivr0PrTyHPIP",
+          "mode": "id"
+        },
+        "fields": {
+          "values": [
+            {
+              "name": "wa_id",
+              "stringValue": "={{ $(\"WA Trigger\").item.json.contacts[0].wa_id }}"
+            },
+            {
+              "name": "agentOutput",
+              "stringValue": "={{ $json.output }}"
+            },
+            {
+              "name": "inputText",
+              "stringValue": "={{ $(\"Set Input Text\").item.json.inputText }}"
+            }
+          ]
+        },
+        "options": {}
+      }
     }
   ],
   "connections": {
@@ -669,17 +742,6 @@
           {
             "node": "AI Agent",
             "type": "ai_memory",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "AI Agent": {
-      "main": [
-        [
-          {
-            "node": "Check Output",
-            "type": "main",
             "index": 0
           }
         ]
@@ -777,17 +839,6 @@
         [
           {
             "node": "Set Input Text",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Set Input Text": {
-      "main": [
-        [
-          {
-            "node": "AI Agent",
             "type": "main",
             "index": 0
           }
@@ -912,6 +963,61 @@
           }
         ]
       ]
+    },
+    "Set Input Text": {
+      "main": [
+        [
+          {
+            "node": "Execute: State Reader",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute: State Reader": {
+      "main": [
+        [
+          {
+            "node": "Inject State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Inject State": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Execute: State Updater",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute: State Updater": {
+      "main": [
+        [
+          {
+            "node": "Check Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "settings": {
@@ -924,9 +1030,9 @@
   "staticData": null,
   "meta": null,
   "pinData": {},
-  "versionId": "d2d3d7e7-50e3-464d-bdcf-d525ee31ac74",
-  "activeVersionId": "d2d3d7e7-50e3-464d-bdcf-d525ee31ac74",
-  "versionCounter": 528,
+  "versionId": "cd270dc7-e8e3-4dd2-bad1-14f00ca7ac1a",
+  "activeVersionId": "cd270dc7-e8e3-4dd2-bad1-14f00ca7ac1a",
+  "versionCounter": 541,
   "triggerCount": 1,
   "shared": [
     {
@@ -949,9 +1055,9 @@
   ],
   "tags": [],
   "activeVersion": {
-    "updatedAt": "2026-04-08T06:12:40.746Z",
-    "createdAt": "2026-04-08T06:12:31.494Z",
-    "versionId": "d2d3d7e7-50e3-464d-bdcf-d525ee31ac74",
+    "updatedAt": "2026-05-11T20:22:38.665Z",
+    "createdAt": "2026-05-11T20:22:38.665Z",
+    "versionId": "cd270dc7-e8e3-4dd2-bad1-14f00ca7ac1a",
     "workflowId": "kbWzPpbDMnz4TyA0",
     "nodes": [
       {
@@ -987,7 +1093,7 @@
           "promptType": "define",
           "text": "={{ $json.inputText }}",
           "options": {
-            "systemMessage": "=Eres el asistente virtual de DoctorKyn para agendamiento de citas médicas por WhatsApp. Hablas en español de forma amable, concisa y profesional.\n\n## CONTEXTO\nFecha de hoy (fija para esta sesión): {{ $now.format('yyyy-MM-dd') }}\nUsá SOLO esta fecha como referencia. No inventes fechas.\n\n## HERRAMIENTAS (via MCP Client)\n\n- find_patient(identification) — busca paciente por cédula\n- get_available_services() — retorna servicios disponibles (nombres exactos)\n- get_available_clinics(serviceName?) — retorna clínicas disponibles para el servicio\n- find_nearby_clinics(latitude, longitude, serviceName?) — clínicas por distancia\n- get_available_days(clinicName, serviceName, startDate, endDate) — fechas con disponibilidad\n- get_time_slots(clinicName, serviceName, date) — horarios del día, incluye scheduleId por slot\n- get_discounts(patientCedula, clinicName) — descuentos aplicables\n- book_appointment(clinicName, serviceName, date, time, patientCedula, price) — retorna receiptId. price = precio FINAL con descuento.\n- get_appointment(receiptId) — detalles de cita\n- reschedule_appointment(receiptId, newScheduleId) — reprograma usando scheduleId de get_time_slots\n- cancel_appointment(receiptId) — cancela cita\n\nTodas las herramientas aceptan NOMBRES (no UUIDs), excepto newScheduleId en reschedule que viene de get_time_slots. NUNCA inventes UUIDs ni nombres.\n\n## FLUJO DE AGENDAMIENTO\n\n1. Pedí la cédula → find_patient(identification)\n2. Preguntá qué especialidad → SIEMPRE llamá get_available_services() y mostrá la lista numerada. Usá el NOMBRE EXACTO de la opción elegida.\n3. Preguntá en qué clínica → get_available_clinics(serviceName). Si el paciente no sabe, ofrecé compartir ubicación de WhatsApp → find_nearby_clinics.\n4. Días → get_available_days(clinicName, serviceName, startDate=hoy, endDate=hoy+30días). Usá la fecha del CONTEXTO. Mostrá máx 5 opciones.\n5. Horarios → get_time_slots(clinicName, serviceName, date=YYYY-MM-DD). Guardá el scheduleId del slot que elija.\n6. Descuentos → get_discounts(patientCedula, clinicName). Calculá precio final.\n7. Resumí (fecha, hora, precio final, doctor si fue devuelto) y pedí confirmación explícita.\n8. Con confirmación → book_appointment(clinicName, serviceName, date, time, patientCedula, price con descuento).\n9. Confirmación final → get_appointment(receiptId). Mostrá el código.\n\n## FLUJOS ALTERNATIVOS\n\n- Consultar cita: Pedí el receiptId → get_appointment(receiptId). Si no lo recuerda, indicale que está en el mensaje de confirmación.\n- Reprogramar: receiptId → get_available_days + get_time_slots → elegí slot → reschedule_appointment(receiptId, newScheduleId=scheduleId del slot).\n- Cancelar: receiptId → cancel_appointment(receiptId).\n\n## MANEJO DE ERRORES\n\n- find_patient falla → la cédula no está registrada. Pedí que se registre en DoctorKyn o contacte a la clínica.\n- book_appointment retorna \"ya tiene cita pendiente\" → informá al paciente, ofrecé ver la cita existente (get_appointment) o reprogramarla.\n- get_available_services vacío → no hay disponibilidad, sugerí contactar directamente a la clínica.\n- get_available_clinics vacío para un servicio → no hay clínicas con ese servicio, ofrecé otras especialidades.\n- Sin receiptId para cancelar/reprogramar → indicá que está en el mensaje de confirmación anterior.\n\n## REGLAS\n- NUNCA agendes sin confirmación explícita. Acepta: sí, confirmo, dale, ok, va, perfecto, claro.\n- SIEMPRE muestra precio final (con descuento) antes de reservar.\n- Mensajes cortos: máx 4 líneas. Listas: máx 5 ítems numerados.\n- Emojis moderados: 📅 🕐 ✅ 👨‍⚕️\n- Formato fechas: 'Lunes 6 de Abril', horas: '09:00'\n- No menciones nombre de doctor si no lo devolvió get_time_slots.\n- Los PRECIOS dependen de la clínica: NUNCA muestres precios de servicios sin haber identificado primero la clínica. El precio real se obtiene de get_time_slots (precio por slot) o get_discounts (precio con descuento). Si el paciente pregunta '¿cuánto cuesta?' sin haber elegido clínica, preguntale primero en qué clínica.",
+            "systemMessage": "=Eres el asistente virtual de DoctorKyn para agendamiento de citas médicas por WhatsApp. Hablas en español de forma amable, concisa y profesional.\n\n## CONTEXTO\nFecha de hoy (fija para esta sesión): {{ $now.format('yyyy-MM-dd') }}\nUsá SOLO esta fecha como referencia. No inventes fechas.\n\n## HERRAMIENTAS (via MCP Client)\n\n- find_patient(identification) — busca paciente por cédula\n- get_available_services() — retorna servicios disponibles (nombres exactos)\n- get_available_clinics(serviceName?) — retorna clínicas disponibles para el servicio\n- find_nearby_clinics(latitude, longitude, serviceName?) — clínicas por distancia\n- get_available_days(clinicName, serviceName, startDate, endDate) — fechas con disponibilidad\n- get_time_slots(clinicName, serviceName, date) — horarios del día, incluye scheduleId por slot\n- get_discounts(patientCedula, clinicName) — descuentos aplicables\n- book_appointment(clinicName, serviceName, date, time, patientCedula, price) — retorna receiptId. price = precio FINAL con descuento.\n- get_appointment(receiptId) — detalles de cita\n- reschedule_appointment(receiptId, newScheduleId) — reprograma usando scheduleId de get_time_slots\n- cancel_appointment(receiptId) — cancela cita\n\nTodas las herramientas aceptan NOMBRES (no UUIDs), excepto newScheduleId en reschedule que viene de get_time_slots. NUNCA inventes UUIDs ni nombres.\n\n## FLUJO DE AGENDAMIENTO\n\nIMPORTANTE: Antes de cada pregunta, revisá el bloque PROGRESO DE RESERVA ACTUAL al final de este mensaje. Seguí estas reglas estrictamente:\n\n- Si un campo ya tiene valor → NO lo vuelvas a pedir. Úsalo directamente.\n- Si un campo muestra ⚠️ conflict → resuélvelo antes de avanzar.\n- Si status es \"booked\" → no inicies una nueva reserva sin confirmación explícita del paciente.\n- Siempre retomá desde el primer campo con valor null en esta secuencia:\n  cedula → service → clinic → date → time_slot → (confirmar precio) → book_appointment\n\nPasos:\n1. cedula null   → pedí la cédula → find_patient(identification)\n2. service null  → SIEMPRE llamá get_available_services() y mostrá lista numerada\n3. clinic null   → get_available_clinics(serviceName). Si no sabe → find_nearby_clinics\n4. date null     → get_available_days(clinicName, serviceName, hoy, hoy+30d). Máx 5 opciones.\n5. time_slot null → get_time_slots(clinicName, serviceName, date). Incluye scheduleId por slot.\n6. Todos completos → get_discounts(cedula, clinic) → confirmá precio final → book_appointment\n## FLUJOS ALTERNATIVOS\n\n- Consultar cita: Pedí el receiptId → get_appointment(receiptId). Si no lo recuerda, indicale que está en el mensaje de confirmación.\n- Reprogramar: receiptId → get_available_days + get_time_slots → elegí slot → reschedule_appointment(receiptId, newScheduleId=scheduleId del slot).\n- Cancelar: receiptId → cancel_appointment(receiptId).\n\n## MANEJO DE ERRORES\n\n- find_patient falla → la cédula no está registrada. Pedí que se registre en DoctorKyn o contacte a la clínica.\n- book_appointment retorna \"ya tiene cita pendiente\" → informá al paciente, ofrecé ver la cita existente (get_appointment) o reprogramarla.\n- get_available_services vacío → no hay disponibilidad, sugerí contactar directamente a la clínica.\n- get_available_clinics vacío para un servicio → no hay clínicas con ese servicio, ofrecé otras especialidades.\n- Sin receiptId para cancelar/reprogramar → indicá que está en el mensaje de confirmación anterior.\n\n## REGLAS\n- NUNCA agendes sin confirmación explícita. Acepta: sí, confirmo, dale, ok, va, perfecto, claro.\n- SIEMPRE muestra precio final (con descuento) antes de reservar.\n- Mensajes cortos: máx 4 líneas. Listas: máx 5 ítems numerados.\n- Emojis moderados: 📅 🕐 ✅ 👨‍⚕️\n- Formato fechas: 'Lunes 6 de Abril', horas: '09:00'\n- No menciones nombre de doctor si no lo devolvió get_time_slots.\n- Los PRECIOS dependen de la clínica: NUNCA muestres precios de servicios sin haber identificado primero la clínica. El precio real se obtiene de get_time_slots (precio por slot) o get_discounts (precio con descuento). Si el paciente pregunta '¿cuánto cuesta?' sin haber elegido clínica, preguntale primero en qué clínica.\n\n{{ $json.bookingStateFormatted }}",
             "maxIterations": 10
           }
         },
@@ -1120,8 +1226,9 @@
         "parameters": {
           "conditions": {
             "options": {
-              "caseSensitive": true,
+              "version": 2,
               "leftValue": "",
+              "caseSensitive": true,
               "typeValidation": "loose"
             },
             "conditions": [
@@ -1136,8 +1243,7 @@
               }
             ],
             "combinator": "and"
-          },
-          "options": {}
+          }
         },
         "name": "IF Rate Limited",
         "type": "n8n-nodes-base.if",
@@ -1176,8 +1282,9 @@
         "parameters": {
           "conditions": {
             "options": {
-              "caseSensitive": true,
+              "version": 2,
               "leftValue": "",
+              "caseSensitive": true,
               "typeValidation": "strict"
             },
             "conditions": [
@@ -1193,8 +1300,7 @@
               }
             ],
             "combinator": "and"
-          },
-          "options": {}
+          }
         },
         "name": "Check Output",
         "type": "n8n-nodes-base.if",
@@ -1233,8 +1339,9 @@
         "parameters": {
           "conditions": {
             "options": {
-              "caseSensitive": true,
+              "version": 2,
               "leftValue": "",
+              "caseSensitive": true,
               "typeValidation": "strict"
             },
             "conditions": [
@@ -1249,8 +1356,7 @@
               }
             ],
             "combinator": "and"
-          },
-          "options": {}
+          }
         },
         "name": "IF Audio",
         "type": "n8n-nodes-base.if",
@@ -1596,6 +1702,79 @@
             "name": "WhatsApp Business account ID API"
           }
         }
+      },
+      {
+        "id": "848a0c53-8d7d-4c7a-9092-642acdb90a9e",
+        "name": "Execute: State Reader",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.1,
+        "position": [
+          560,
+          16
+        ],
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "value": "jXdJK4q9U32OR95O",
+            "mode": "id"
+          },
+          "fields": {
+            "values": [
+              {
+                "name": "wa_id",
+                "stringValue": "={{ $(\"WA Trigger\").item.json.contacts[0].wa_id }}"
+              }
+            ]
+          },
+          "options": {}
+        }
+      },
+      {
+        "id": "55adb92b-9ede-4db4-b9fa-a19f1697c399",
+        "name": "Inject State",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          720,
+          16
+        ],
+        "parameters": {
+          "jsCode": "const inputText = $('Set Input Text').item.json.inputText;\nconst formatted = $('Execute: State Reader').item.json.bookingStateFormatted || '';\nreturn [{ json: { inputText, bookingStateFormatted: formatted } }];"
+        }
+      },
+      {
+        "id": "4dce3616-e6d3-432c-b35a-99f837882ac6",
+        "name": "Execute: State Updater",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.1,
+        "position": [
+          1040,
+          16
+        ],
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "value": "MJc8ivr0PrTyHPIP",
+            "mode": "id"
+          },
+          "fields": {
+            "values": [
+              {
+                "name": "wa_id",
+                "stringValue": "={{ $(\"WA Trigger\").item.json.contacts[0].wa_id }}"
+              },
+              {
+                "name": "agentOutput",
+                "stringValue": "={{ $json.output }}"
+              },
+              {
+                "name": "inputText",
+                "stringValue": "={{ $(\"Set Input Text\").item.json.inputText }}"
+              }
+            ]
+          },
+          "options": {}
+        }
       }
     ],
     "connections": {
@@ -1616,17 +1795,6 @@
             {
               "node": "AI Agent",
               "type": "ai_memory",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "AI Agent": {
-        "main": [
-          [
-            {
-              "node": "Check Output",
-              "type": "main",
               "index": 0
             }
           ]
@@ -1724,17 +1892,6 @@
           [
             {
               "node": "Set Input Text",
-              "type": "main",
-              "index": 0
-            }
-          ]
-        ]
-      },
-      "Set Input Text": {
-        "main": [
-          [
-            {
-              "node": "AI Agent",
               "type": "main",
               "index": 0
             }
@@ -1859,18 +2016,81 @@
             }
           ]
         ]
+      },
+      "Set Input Text": {
+        "main": [
+          [
+            {
+              "node": "Execute: State Reader",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Execute: State Reader": {
+        "main": [
+          [
+            {
+              "node": "Inject State",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Inject State": {
+        "main": [
+          [
+            {
+              "node": "AI Agent",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "AI Agent": {
+        "main": [
+          [
+            {
+              "node": "Execute: State Updater",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Execute: State Updater": {
+        "main": [
+          [
+            {
+              "node": "Check Output",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
       }
     },
     "authors": "Keimer Montes Oliver",
-    "name": "Version d2d3d7e7",
-    "description": "",
-    "autosaved": true,
+    "name": null,
+    "description": null,
+    "autosaved": false,
     "workflowPublishHistory": [
       {
-        "createdAt": "2026-04-08T06:12:40.744Z",
-        "id": 207,
+        "createdAt": "2026-05-11T20:22:41.663Z",
+        "id": 216,
         "workflowId": "kbWzPpbDMnz4TyA0",
-        "versionId": "d2d3d7e7-50e3-464d-bdcf-d525ee31ac74",
+        "versionId": "cd270dc7-e8e3-4dd2-bad1-14f00ca7ac1a",
+        "event": "deactivated",
+        "userId": "5963f460-3684-486d-8f21-cefca0d4b976"
+      },
+      {
+        "createdAt": "2026-05-11T20:22:44.354Z",
+        "id": 217,
+        "workflowId": "kbWzPpbDMnz4TyA0",
+        "versionId": "cd270dc7-e8e3-4dd2-bad1-14f00ca7ac1a",
         "event": "activated",
         "userId": "5963f460-3684-486d-8f21-cefca0d4b976"
       }

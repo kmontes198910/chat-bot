@@ -1,140 +1,259 @@
 {
-    "updatedAt": "2026-05-11T19:53:53.012Z",
-    "createdAt": "2026-05-11T19:48:49.008Z",
-    "id": "jXdJK4q9U32OR95O",
-    "name": "DoctorKyn - Booking State Reader",
-    "description": null,
-    "active": false,
-    "isArchived": false,
-    "nodes": [
-        {
-            "id": "trigger-001",
-            "name": "When Executed by Another Workflow",
-            "type": "n8n-nodes-base.executeWorkflowTrigger",
-            "typeVersion": 1.1,
-            "position": [
-                -400,
-                0
-            ],
-            "parameters": {}
-        },
-        {
-            "id": "redis-001",
-            "name": "Redis GET - Booking State",
-            "type": "n8n-nodes-base.redis",
-            "typeVersion": 1,
-            "position": [
-                -200,
-                0
-            ],
-            "parameters": {
-                "operation": "get",
-                "propertyName": "value",
-                "key": "=doctorkyn:n8n-dev:whatsapp:{{ $json.wa_id }}:booking",
-                "options": {}
-            },
-            "credentials": {
-                "redis": {
-                    "id": "LuDTeor4M8AG2GWQ",
-                    "name": "Keimer Infra Cache"
-                }
-            }
-        },
-        {
-            "id": "code-001",
-            "name": "Parse and Default",
-            "type": "n8n-nodes-base.code",
-            "typeVersion": 2,
-            "position": [
-                0,
-                0
-            ],
-            "parameters": {
-                "jsCode": "const raw = $input.first().json.value;\nlet state;\ntry {\n  state = raw ? JSON.parse(raw) : null;\n} catch(e) {\n  state = null;\n}\nif (!state) {\n  state = {\n    cedula: null, service: null, clinic: null,\n    date: null, time_slot: null, schedule_id: null,\n    price: null, receipt_id: null, status: 'collecting'\n  };\n}\nreturn [{ json: { bookingState: state } }];"
-            }
-        },
-        {
-            "id": "code-002",
-            "name": "Format for System Prompt",
-            "type": "n8n-nodes-base.code",
-            "typeVersion": 2,
-            "position": [
-                200,
-                0
-            ],
-            "parameters": {
-                "jsCode": "const state = $input.first().json.bookingState;\n\nconst fmt = (v) => {\n  if (v === null || v === undefined) return '(pendiente)';\n  if (v === 'conflict') return '\u26a0\ufe0f conflict';\n  return String(v);\n};\n\nlet block;\nif (state.status === 'booked') {\n  block = `## RESERVA COMPLETADA\n- Servicio:    ${fmt(state.service)}\n- Cl\u00ednica:     ${fmt(state.clinic)}\n- Fecha:       ${fmt(state.date)}\n- Horario:     ${fmt(state.time_slot)}\n- Precio:      ${fmt(state.price)}\n- Schedule ID: ${fmt(state.schedule_id)}\n- Recibo:      ${fmt(state.receipt_id)}\n- Estado:      ${fmt(state.status)}\n\nSi el paciente quiere agendar una nueva cita, pedile confirmaci\u00f3n expl\u00edcita antes de continuar.\nSolo cuando confirme, el sistema resetear\u00e1 el estado para la nueva reserva.`;\n} else {\n  block = `## PROGRESO DE RESERVA ACTUAL\n- C\u00e9dula:      ${fmt(state.cedula)}\n- Servicio:    ${fmt(state.service)}\n- Cl\u00ednica:     ${fmt(state.clinic)}\n- Fecha:       ${fmt(state.date)}\n- Horario:     ${fmt(state.time_slot)}\n- Schedule ID: ${fmt(state.schedule_id)}\n- Precio:      ${fmt(state.price)}\n- Estado:      ${fmt(state.status)}\n\nNunca vuelvas a pedir un campo que ya est\u00e9 confirmado (valor distinto de null).\nSi un campo muestra \"conflict\", aclaralo con el paciente antes de continuar.`;\n}\n\nreturn [{ json: {\n  bookingState: state,\n  bookingStateFormatted: block\n} }];"
-            }
+  "updatedAt": "2026-05-11T20:20:29.518Z",
+  "createdAt": "2026-05-11T19:48:49.008Z",
+  "id": "jXdJK4q9U32OR95O",
+  "name": "DoctorKyn - Booking State Reader",
+  "description": null,
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "id": "trigger-001",
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -400,
+        0
+      ],
+      "parameters": {
+        "inputSource": "passthrough"
+      }
+    },
+    {
+      "id": "redis-001",
+      "name": "Redis GET - Booking State",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [
+        -200,
+        0
+      ],
+      "parameters": {
+        "operation": "get",
+        "propertyName": "value",
+        "key": "=doctorkyn:n8n-dev:whatsapp:{{ $json.wa_id }}:booking",
+        "options": {}
+      },
+      "credentials": {
+        "redis": {
+          "id": "LuDTeor4M8AG2GWQ",
+          "name": "Keimer Infra Cache"
         }
+      }
+    },
+    {
+      "id": "code-001",
+      "name": "Parse and Default",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const raw = $input.first().json.value;\nlet state;\ntry {\n  state = raw ? JSON.parse(raw) : null;\n} catch(e) {\n  state = null;\n}\nif (!state) {\n  state = {\n    cedula: null, service: null, clinic: null,\n    date: null, time_slot: null, schedule_id: null,\n    price: null, receipt_id: null, status: 'collecting'\n  };\n}\nreturn [{ json: { bookingState: state } }];"
+      }
+    },
+    {
+      "id": "code-002",
+      "name": "Format for System Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        200,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const state = $input.first().json.bookingState;\n\nconst fmt = (v) => {\n  if (v === null || v === undefined) return '(pendiente)';\n  if (v === 'conflict') return '⚠️ conflict';\n  return String(v);\n};\n\nlet block;\nif (state.status === 'booked') {\n  block = `## RESERVA COMPLETADA\n- Servicio:    ${fmt(state.service)}\n- Clínica:     ${fmt(state.clinic)}\n- Fecha:       ${fmt(state.date)}\n- Horario:     ${fmt(state.time_slot)}\n- Precio:      ${fmt(state.price)}\n- Schedule ID: ${fmt(state.schedule_id)}\n- Recibo:      ${fmt(state.receipt_id)}\n- Estado:      ${fmt(state.status)}\n\nSi el paciente quiere agendar una nueva cita, pedile confirmación explícita antes de continuar.\nSolo cuando confirme, el sistema reseteará el estado para la nueva reserva.`;\n} else {\n  block = `## PROGRESO DE RESERVA ACTUAL\n- Cédula:      ${fmt(state.cedula)}\n- Servicio:    ${fmt(state.service)}\n- Clínica:     ${fmt(state.clinic)}\n- Fecha:       ${fmt(state.date)}\n- Horario:     ${fmt(state.time_slot)}\n- Schedule ID: ${fmt(state.schedule_id)}\n- Precio:      ${fmt(state.price)}\n- Estado:      ${fmt(state.status)}\n\nNunca vuelvas a pedir un campo que ya esté confirmado (valor distinto de null).\nSi un campo muestra \"conflict\", aclaralo con el paciente antes de continuar.`;\n}\n\nreturn [{ json: {\n  bookingState: state,\n  bookingStateFormatted: block\n} }];"
+      }
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Redis GET - Booking State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis GET - Booking State": {
+      "main": [
+        [
+          {
+            "node": "Parse and Default",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse and Default": {
+      "main": [
+        [
+          {
+            "node": "Format for System Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "saveManualExecutions": true,
+    "saveExecutionProgress": true
+  },
+  "staticData": null,
+  "meta": null,
+  "pinData": null,
+  "versionId": "21f0b8d1-38dd-4ee2-8864-7a5a1cdfdae9",
+  "activeVersionId": "21f0b8d1-38dd-4ee2-8864-7a5a1cdfdae9",
+  "versionCounter": 9,
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-05-11T19:48:49.008Z",
+      "createdAt": "2026-05-11T19:48:49.008Z",
+      "role": "workflow:owner",
+      "workflowId": "jXdJK4q9U32OR95O",
+      "projectId": "MfE3ZI64e0dGnFAj",
+      "project": {
+        "updatedAt": "2026-04-03T12:29:07.342Z",
+        "createdAt": "2026-01-16T18:34:08.899Z",
+        "id": "MfE3ZI64e0dGnFAj",
+        "name": "Keimer Montes Oliver <keimermo1989@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "creatorId": "5963f460-3684-486d-8f21-cefca0d4b976"
+      }
+    }
+  ],
+  "tags": [],
+  "activeVersion": {
+    "updatedAt": "2026-05-11T20:20:29.520Z",
+    "createdAt": "2026-05-11T20:20:29.520Z",
+    "versionId": "21f0b8d1-38dd-4ee2-8864-7a5a1cdfdae9",
+    "workflowId": "jXdJK4q9U32OR95O",
+    "nodes": [
+      {
+        "id": "trigger-001",
+        "name": "When Executed by Another Workflow",
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1.1,
+        "position": [
+          -400,
+          0
+        ],
+        "parameters": {
+          "inputSource": "passthrough"
+        }
+      },
+      {
+        "id": "redis-001",
+        "name": "Redis GET - Booking State",
+        "type": "n8n-nodes-base.redis",
+        "typeVersion": 1,
+        "position": [
+          -200,
+          0
+        ],
+        "parameters": {
+          "operation": "get",
+          "propertyName": "value",
+          "key": "=doctorkyn:n8n-dev:whatsapp:{{ $json.wa_id }}:booking",
+          "options": {}
+        },
+        "credentials": {
+          "redis": {
+            "id": "LuDTeor4M8AG2GWQ",
+            "name": "Keimer Infra Cache"
+          }
+        }
+      },
+      {
+        "id": "code-001",
+        "name": "Parse and Default",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          0,
+          0
+        ],
+        "parameters": {
+          "jsCode": "const raw = $input.first().json.value;\nlet state;\ntry {\n  state = raw ? JSON.parse(raw) : null;\n} catch(e) {\n  state = null;\n}\nif (!state) {\n  state = {\n    cedula: null, service: null, clinic: null,\n    date: null, time_slot: null, schedule_id: null,\n    price: null, receipt_id: null, status: 'collecting'\n  };\n}\nreturn [{ json: { bookingState: state } }];"
+        }
+      },
+      {
+        "id": "code-002",
+        "name": "Format for System Prompt",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          200,
+          0
+        ],
+        "parameters": {
+          "jsCode": "const state = $input.first().json.bookingState;\n\nconst fmt = (v) => {\n  if (v === null || v === undefined) return '(pendiente)';\n  if (v === 'conflict') return '⚠️ conflict';\n  return String(v);\n};\n\nlet block;\nif (state.status === 'booked') {\n  block = `## RESERVA COMPLETADA\n- Servicio:    ${fmt(state.service)}\n- Clínica:     ${fmt(state.clinic)}\n- Fecha:       ${fmt(state.date)}\n- Horario:     ${fmt(state.time_slot)}\n- Precio:      ${fmt(state.price)}\n- Schedule ID: ${fmt(state.schedule_id)}\n- Recibo:      ${fmt(state.receipt_id)}\n- Estado:      ${fmt(state.status)}\n\nSi el paciente quiere agendar una nueva cita, pedile confirmación explícita antes de continuar.\nSolo cuando confirme, el sistema reseteará el estado para la nueva reserva.`;\n} else {\n  block = `## PROGRESO DE RESERVA ACTUAL\n- Cédula:      ${fmt(state.cedula)}\n- Servicio:    ${fmt(state.service)}\n- Clínica:     ${fmt(state.clinic)}\n- Fecha:       ${fmt(state.date)}\n- Horario:     ${fmt(state.time_slot)}\n- Schedule ID: ${fmt(state.schedule_id)}\n- Precio:      ${fmt(state.price)}\n- Estado:      ${fmt(state.status)}\n\nNunca vuelvas a pedir un campo que ya esté confirmado (valor distinto de null).\nSi un campo muestra \"conflict\", aclaralo con el paciente antes de continuar.`;\n}\n\nreturn [{ json: {\n  bookingState: state,\n  bookingStateFormatted: block\n} }];"
+        }
+      }
     ],
     "connections": {
-        "When Executed by Another Workflow": {
-            "main": [
-                [
-                    {
-                        "node": "Redis GET - Booking State",
-                        "type": "main",
-                        "index": 0
-                    }
-                ]
-            ]
-        },
-        "Redis GET - Booking State": {
-            "main": [
-                [
-                    {
-                        "node": "Parse and Default",
-                        "type": "main",
-                        "index": 0
-                    }
-                ]
-            ]
-        },
-        "Parse and Default": {
-            "main": [
-                [
-                    {
-                        "node": "Format for System Prompt",
-                        "type": "main",
-                        "index": 0
-                    }
-                ]
-            ]
-        }
-    },
-    "settings": {
-        "executionOrder": "v1",
-        "saveDataErrorExecution": "all",
-        "saveDataSuccessExecution": "all",
-        "saveManualExecutions": true,
-        "saveExecutionProgress": true
-    },
-    "staticData": null,
-    "meta": null,
-    "pinData": null,
-    "versionId": "0e9fa866-73ea-4743-b958-a60423822fba",
-    "activeVersionId": null,
-    "versionCounter": 3,
-    "triggerCount": 0,
-    "shared": [
-        {
-            "updatedAt": "2026-05-11T19:48:49.008Z",
-            "createdAt": "2026-05-11T19:48:49.008Z",
-            "role": "workflow:owner",
-            "workflowId": "jXdJK4q9U32OR95O",
-            "projectId": "MfE3ZI64e0dGnFAj",
-            "project": {
-                "updatedAt": "2026-04-03T12:29:07.342Z",
-                "createdAt": "2026-01-16T18:34:08.899Z",
-                "id": "MfE3ZI64e0dGnFAj",
-                "name": "Keimer Montes Oliver <keimermo1989@gmail.com>",
-                "type": "personal",
-                "icon": null,
-                "description": null,
-                "creatorId": "5963f460-3684-486d-8f21-cefca0d4b976"
+      "When Executed by Another Workflow": {
+        "main": [
+          [
+            {
+              "node": "Redis GET - Booking State",
+              "type": "main",
+              "index": 0
             }
-        }
-    ],
-    "tags": [],
-    "activeVersion": null
+          ]
+        ]
+      },
+      "Redis GET - Booking State": {
+        "main": [
+          [
+            {
+              "node": "Parse and Default",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse and Default": {
+        "main": [
+          [
+            {
+              "node": "Format for System Prompt",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Keimer Montes Oliver",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-05-11T20:20:30.316Z",
+        "id": 211,
+        "workflowId": "jXdJK4q9U32OR95O",
+        "versionId": "21f0b8d1-38dd-4ee2-8864-7a5a1cdfdae9",
+        "event": "activated",
+        "userId": "5963f460-3684-486d-8f21-cefca0d4b976"
+      }
+    ]
+  }
 }

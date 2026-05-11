@@ -1,10 +1,10 @@
 {
-  "updatedAt": "2026-05-11T20:09:12.883Z",
+  "updatedAt": "2026-05-11T20:19:47.130Z",
   "createdAt": "2026-05-11T19:57:11.744Z",
   "id": "MJc8ivr0PrTyHPIP",
   "name": "DoctorKyn - Booking State Updater",
   "description": null,
-  "active": false,
+  "active": true,
   "isArchived": false,
   "nodes": [
     {
@@ -81,7 +81,7 @@
         "nodeCredentialType": "openAiApi",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\"model\":\"gpt-4.1-mini\",\"temperature\":0,\"max_tokens\":200,\"response_format\":{\"type\":\"json_object\"},\"messages\":[{\"role\":\"system\",\"content\":\"You are a structured data extractor for a medical appointment booking system.\\n\\nGiven one conversational turn (patient input + assistant response), extract ONLY the fields that were explicitly confirmed in this turn. Do NOT carry over previous values \u2014 return null for anything not confirmed in this specific exchange.\\n\\nReturn valid JSON only, no explanation:\\n{\\n  \\\"cedula\\\": string | null,\\n  \\\"service\\\": string | null,\\n  \\\"clinic\\\": string | null,\\n  \\\"date\\\": string | null,\\n  \\\"time_slot\\\": string | null,\\n  \\\"schedule_id\\\": string | null,\\n  \\\"price\\\": number | null,\\n  \\\"receipt_id\\\": string | null,\\n  \\\"status\\\": \\\"collecting\\\" | \\\"confirming\\\" | \\\"booked\\\" | \\\"cancelled\\\" | null,\\n  \\\"newBookingConfirmed\\\": boolean\\n}\\n\\nnewBookingConfirmed must be true ONLY if the patient explicitly confirmed starting a new booking while a previous one is already booked. Default false.\"},{\"role\":\"user\",\"content\":{{ $json.extractionUserMessageEncoded }}}]}",
+        "jsonBody": "={\"model\":\"gpt-4.1-mini\",\"temperature\":0,\"max_tokens\":200,\"response_format\":{\"type\":\"json_object\"},\"messages\":[{\"role\":\"system\",\"content\":\"You are a structured data extractor for a medical appointment booking system.\\n\\nGiven one conversational turn (patient input + assistant response), extract ONLY the fields that were explicitly confirmed in this turn. Do NOT carry over previous values — return null for anything not confirmed in this specific exchange.\\n\\nReturn valid JSON only, no explanation:\\n{\\n  \\\"cedula\\\": string | null,\\n  \\\"service\\\": string | null,\\n  \\\"clinic\\\": string | null,\\n  \\\"date\\\": string | null,\\n  \\\"time_slot\\\": string | null,\\n  \\\"schedule_id\\\": string | null,\\n  \\\"price\\\": number | null,\\n  \\\"receipt_id\\\": string | null,\\n  \\\"status\\\": \\\"collecting\\\" | \\\"confirming\\\" | \\\"booked\\\" | \\\"cancelled\\\" | null,\\n  \\\"newBookingConfirmed\\\": boolean\\n}\\n\\nnewBookingConfirmed must be true ONLY if the patient explicitly confirmed starting a new booking while a previous one is already booked. Default false.\"},{\"role\":\"user\",\"content\":{{ $json.extractionUserMessageEncoded }}}]}",
         "options": {}
       },
       "credentials": {
@@ -279,8 +279,8 @@
   "meta": null,
   "pinData": null,
   "versionId": "72d47674-cf89-4295-9810-49631f310691",
-  "activeVersionId": null,
-  "versionCounter": 4,
+  "activeVersionId": "72d47674-cf89-4295-9810-49631f310691",
+  "versionCounter": 7,
   "triggerCount": 0,
   "shared": [
     {
@@ -302,5 +302,290 @@
     }
   ],
   "tags": [],
-  "activeVersion": null
+  "activeVersion": {
+    "updatedAt": "2026-05-11T20:09:12.884Z",
+    "createdAt": "2026-05-11T20:09:12.884Z",
+    "versionId": "72d47674-cf89-4295-9810-49631f310691",
+    "workflowId": "MJc8ivr0PrTyHPIP",
+    "nodes": [
+      {
+        "name": "When Executed by Another Workflow",
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "typeVersion": 1,
+        "position": [
+          -600,
+          0
+        ],
+        "parameters": {},
+        "id": "68f0e9d6-abf5-477d-80f8-8e13bbfa5ec8"
+      },
+      {
+        "name": "Redis GET - Current State",
+        "type": "n8n-nodes-base.redis",
+        "typeVersion": 1,
+        "position": [
+          -400,
+          0
+        ],
+        "parameters": {
+          "operation": "get",
+          "propertyName": "value",
+          "key": "=doctorkyn:n8n-dev:whatsapp:{{ $('When Executed by Another Workflow').item.json.wa_id }}:booking",
+          "options": {}
+        },
+        "credentials": {
+          "redis": {
+            "id": "LuDTeor4M8AG2GWQ",
+            "name": "Keimer Infra Cache"
+          }
+        },
+        "id": "34bb51b6-2db3-441a-9fc0-8be4428a2198"
+      },
+      {
+        "name": "Parse Current State",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          -200,
+          0
+        ],
+        "parameters": {
+          "jsCode": "const raw = $input.first().json.value;\nlet state;\ntry {\n  state = raw ? JSON.parse(raw) : null;\n} catch(e) {\n  state = null;\n}\nif (!state) {\n  state = {\n    cedula: null, service: null, clinic: null,\n    date: null, time_slot: null, schedule_id: null,\n    price: null, receipt_id: null, status: 'collecting'\n  };\n}\nreturn [{ json: { currentState: state } }];"
+        },
+        "id": "d1429c51-0cc0-42e9-bc6e-a0a1d8feaf51"
+      },
+      {
+        "name": "Build Extraction Prompt",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          0,
+          0
+        ],
+        "parameters": {
+          "jsCode": "const trigger = $('When Executed by Another Workflow').item.json;\nconst agentOutput = trigger.agentOutput || '';\nconst inputText   = trigger.inputText   || '';\n\nconst userMessage = `PATIENT INPUT:\\n${inputText}\\n\\nASSISTANT RESPONSE:\\n${agentOutput}`;\n\n// Pre-encode the user message so it is safe to embed in JSON strings\nconst userMessageEncoded = JSON.stringify(userMessage);\n\nreturn [{ json: {\n  currentState: $('Parse Current State').item.json.currentState,\n  extractionUserMessage: userMessage,\n  extractionUserMessageEncoded: userMessageEncoded\n} }];"
+        },
+        "id": "e5b43a7e-2971-4250-a8e6-0dce28c10c39"
+      },
+      {
+        "name": "Extract Fields LLM",
+        "type": "n8n-nodes-base.httpRequest",
+        "typeVersion": 4.2,
+        "position": [
+          200,
+          0
+        ],
+        "parameters": {
+          "method": "POST",
+          "url": "https://api.openai.com/v1/chat/completions",
+          "authentication": "predefinedCredentialType",
+          "nodeCredentialType": "openAiApi",
+          "sendBody": true,
+          "specifyBody": "json",
+          "jsonBody": "={\"model\":\"gpt-4.1-mini\",\"temperature\":0,\"max_tokens\":200,\"response_format\":{\"type\":\"json_object\"},\"messages\":[{\"role\":\"system\",\"content\":\"You are a structured data extractor for a medical appointment booking system.\\n\\nGiven one conversational turn (patient input + assistant response), extract ONLY the fields that were explicitly confirmed in this turn. Do NOT carry over previous values — return null for anything not confirmed in this specific exchange.\\n\\nReturn valid JSON only, no explanation:\\n{\\n  \\\"cedula\\\": string | null,\\n  \\\"service\\\": string | null,\\n  \\\"clinic\\\": string | null,\\n  \\\"date\\\": string | null,\\n  \\\"time_slot\\\": string | null,\\n  \\\"schedule_id\\\": string | null,\\n  \\\"price\\\": number | null,\\n  \\\"receipt_id\\\": string | null,\\n  \\\"status\\\": \\\"collecting\\\" | \\\"confirming\\\" | \\\"booked\\\" | \\\"cancelled\\\" | null,\\n  \\\"newBookingConfirmed\\\": boolean\\n}\\n\\nnewBookingConfirmed must be true ONLY if the patient explicitly confirmed starting a new booking while a previous one is already booked. Default false.\"},{\"role\":\"user\",\"content\":{{ $json.extractionUserMessageEncoded }}}]}",
+          "options": {}
+        },
+        "credentials": {
+          "openAiApi": {
+            "id": "wLpMuXGfvIEudfkX",
+            "name": "Keimer OpenAI"
+          }
+        },
+        "id": "fddc8eed-d7d3-49b6-88ea-4a9f5c274936"
+      },
+      {
+        "name": "Cascade and Merge",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          400,
+          0
+        ],
+        "parameters": {
+          "jsCode": "const DOWNSTREAM = {\n  service:   ['clinic', 'date', 'time_slot', 'schedule_id', 'price'],\n  clinic:    ['date', 'time_slot', 'schedule_id', 'price'],\n  date:      ['time_slot', 'schedule_id'],\n  time_slot: ['schedule_id'],\n};\n\nconst current = $('Parse Current State').item.json.currentState;\nconst FIELDS = ['cedula','service','clinic','date','time_slot','schedule_id','price','receipt_id','status'];\n\n// Normalise LLM \"null\" string to JS null\nfunction norm(v) {\n  if (v === null || v === undefined) return null;\n  if (typeof v === 'string' && v.trim().toLowerCase() === 'null') return null;\n  return v;\n}\n\nlet extracted;\ntry {\n  const raw = $input.first().json.choices[0].message.content;\n  extracted = JSON.parse(raw);\n} catch(e) {\n  return [{ json: { bookingState: current, skipWrite: true, errorReason: e.message } }];\n}\n\n// Gate: booked status\nif (current.status === 'booked') {\n  if (extracted.newBookingConfirmed === true) {\n    const fresh = {\n      cedula: null, service: null, clinic: null,\n      date: null, time_slot: null, schedule_id: null,\n      price: null, receipt_id: null, status: 'collecting'\n    };\n    for (const f of FIELDS) {\n      const v = norm(extracted[f]);\n      if (v !== null) fresh[f] = v;\n    }\n    // Safety: if LLM set status=booked in same turn, reset it to collecting\n    if (fresh.status === 'booked') fresh.status = 'collecting';\n    return [{ json: { bookingState: fresh, skipWrite: false } }];\n  } else {\n    return [{ json: { bookingState: current, skipWrite: false } }];\n  }\n}\n\n// Normal flow\nconst merged = { ...current };\nfor (const field of FIELDS) {\n  const newVal = norm(extracted[field]);\n  if (newVal === null) continue;\n  const oldVal = merged[field];\n  if (oldVal !== null && oldVal !== newVal && DOWNSTREAM[field]) {\n    for (const ds of DOWNSTREAM[field]) {\n      merged[ds] = null;\n    }\n  }\n  merged[field] = newVal;\n}\n\n// Safety: if merged status became \"booked\" in this turn, the booked gate\n// will apply on the NEXT turn. No action needed here.\n\nreturn [{ json: { bookingState: merged, skipWrite: false } }];"
+        },
+        "id": "24bac9d6-1883-40eb-97f3-e285eb86b656"
+      },
+      {
+        "name": "IF Skip Write",
+        "type": "n8n-nodes-base.if",
+        "typeVersion": 2.2,
+        "position": [
+          600,
+          0
+        ],
+        "parameters": {
+          "conditions": {
+            "options": {
+              "caseSensitive": true,
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
+            },
+            "conditions": [
+              {
+                "id": "skip-write-check-001",
+                "leftValue": "={{ $json.skipWrite }}",
+                "rightValue": true,
+                "operator": {
+                  "type": "boolean",
+                  "operation": "equals"
+                }
+              }
+            ],
+            "combinator": "and"
+          },
+          "options": {}
+        },
+        "id": "342617df-c7bf-4940-873f-97733b4e2e55"
+      },
+      {
+        "name": "Redis SET - Save State",
+        "type": "n8n-nodes-base.redis",
+        "typeVersion": 1,
+        "position": [
+          800,
+          100
+        ],
+        "parameters": {
+          "operation": "set",
+          "key": "=doctorkyn:n8n-dev:whatsapp:{{ $('When Executed by Another Workflow').item.json.wa_id }}:booking",
+          "value": "={{ JSON.stringify($('Cascade and Merge').item.json.bookingState) }}",
+          "expire": true,
+          "ttl": 7200
+        },
+        "credentials": {
+          "redis": {
+            "id": "LuDTeor4M8AG2GWQ",
+            "name": "Keimer Infra Cache"
+          }
+        },
+        "id": "90548aa6-5a7d-4858-9bb8-6b8406d2f153"
+      },
+      {
+        "name": "Return State",
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          1000,
+          0
+        ],
+        "parameters": {
+          "jsCode": "const state = $('Cascade and Merge').item.json.bookingState;\nreturn [{ json: { bookingState: state } }];"
+        },
+        "id": "c001e88d-e73a-4ef4-9dfb-ac2774c79d23"
+      }
+    ],
+    "connections": {
+      "When Executed by Another Workflow": {
+        "main": [
+          [
+            {
+              "node": "Redis GET - Current State",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Redis GET - Current State": {
+        "main": [
+          [
+            {
+              "node": "Parse Current State",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Parse Current State": {
+        "main": [
+          [
+            {
+              "node": "Build Extraction Prompt",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Build Extraction Prompt": {
+        "main": [
+          [
+            {
+              "node": "Extract Fields LLM",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Extract Fields LLM": {
+        "main": [
+          [
+            {
+              "node": "Cascade and Merge",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Cascade and Merge": {
+        "main": [
+          [
+            {
+              "node": "IF Skip Write",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "IF Skip Write": {
+        "main": [
+          [
+            {
+              "node": "Return State",
+              "type": "main",
+              "index": 0
+            }
+          ],
+          [
+            {
+              "node": "Redis SET - Save State",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Redis SET - Save State": {
+        "main": [
+          [
+            {
+              "node": "Return State",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Keimer Montes Oliver",
+    "name": null,
+    "description": null,
+    "autosaved": false,
+    "workflowPublishHistory": [
+      {
+        "createdAt": "2026-05-11T20:19:47.455Z",
+        "id": 210,
+        "workflowId": "MJc8ivr0PrTyHPIP",
+        "versionId": "72d47674-cf89-4295-9810-49631f310691",
+        "event": "activated",
+        "userId": "5963f460-3684-486d-8f21-cefca0d4b976"
+      }
+    ]
+  }
 }
