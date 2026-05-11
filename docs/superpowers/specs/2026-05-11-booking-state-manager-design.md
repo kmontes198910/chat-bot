@@ -261,11 +261,40 @@ return [{
 
 ### AI Agent — system message update
 
-Append at the end of the existing `systemMessage` expression:
+Two additions to the existing `systemMessage` expression:
+
+**1. Replace the existing `## FLUJO DE AGENDAMIENTO` section** with a state-aware version that
+instructs the agent to consult the injected state before every question:
+
+```
+## FLUJO DE AGENDAMIENTO
+
+IMPORTANTE: Antes de cada pregunta, revisá el bloque PROGRESO DE RESERVA ACTUAL al final de
+este mensaje. Seguí estas reglas estrictamente:
+
+- Si un campo ya tiene valor → NO lo vuelvas a pedir. Úsalo directamente.
+- Si un campo muestra ⚠️ conflict → resuélvelo antes de avanzar.
+- Si status es "booked" → no inicies una nueva reserva sin confirmación explícita del paciente.
+- Siempre retomá desde el primer campo con valor null en esta secuencia:
+  cedula → service → clinic → date → time_slot → (confirmar precio) → book_appointment
+
+Pasos:
+1. cedula null   → pedí la cédula → find_patient(identification)
+2. service null  → SIEMPRE llamá get_available_services() y mostrá lista numerada
+3. clinic null   → get_available_clinics(serviceName). Si no sabe → find_nearby_clinics
+4. date null     → get_available_days(clinicName, serviceName, hoy, hoy+30d). Máx 5 opciones.
+5. time_slot null → get_time_slots(clinicName, serviceName, date). Incluye scheduleId por slot.
+6. Todos completos → get_discounts(cedula, clinic) → confirmá precio final → book_appointment
+```
+
+**2. Append the injected state block at the very end** of the system message:
 
 ```
 \n\n{{ $json.bookingStateFormatted }}
 ```
+
+The state block is always the last thing in the system prompt so the agent sees it immediately
+before formulating its response.
 
 ### Updated flow
 
