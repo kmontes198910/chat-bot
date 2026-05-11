@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "skills": {
+    "n8n-mcp-tools-expert": {
+      "source": "czlonkowski/n8n-skills",
+      "sourceType": "github",
+      "skillPath": "skills/n8n-mcp-tools-expert/SKILL.md",
+      "computedHash": "c6126a19a8f03cce4d2fb46edf29a87448b3b90993b53334a295e2bb6adf6e84"
+    },
+    "n8n-api-core": {
+      "source": "local",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/n8n-api-core/SKILL.md"
+    },
+    "n8n-api-executions": {
+      "source": "local",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/n8n-api-executions/SKILL.md"
+    },
+    "n8n-api-projects": {
+      "source": "local",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/n8n-api-projects/SKILL.md"
+    },
+    "n8n-api-users": {
+      "source": "local",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/n8n-api-users/SKILL.md"
+    },
+    "n8n-api-variables": {
+      "source": "local",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/n8n-api-variables/SKILL.md"
+    },
+    "n8n-api-tags": {
+      "source": "local",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/n8n-api-tags/SKILL.md"
+    },
+    "n8n-api-source-control": {
+      "source": "local",
+      "sourceType": "local",
+      "skillPath": ".agents/skills/n8n-api-source-control/SKILL.md"
+    }
+  }
+}
