@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-11T20:04:53.474Z",
+  "updatedAt": "2026-05-11T20:09:12.883Z",
   "createdAt": "2026-05-11T19:57:11.744Z",
   "id": "MJc8ivr0PrTyHPIP",
   "name": "DoctorKyn - Booking State Updater",
@@ -118,7 +118,8 @@
           "options": {
             "caseSensitive": true,
             "leftValue": "",
-            "typeValidation": "strict"
+            "typeValidation": "strict",
+            "version": 2
           },
           "conditions": [
             {
@@ -277,9 +278,9 @@
   "staticData": null,
   "meta": null,
   "pinData": null,
-  "versionId": "a1a4edb9-23d9-40e6-a579-bc5da1bfdaec",
+  "versionId": "72d47674-cf89-4295-9810-49631f310691",
   "activeVersionId": null,
-  "versionCounter": 3,
+  "versionCounter": 4,
   "triggerCount": 0,
   "shared": [
     {
