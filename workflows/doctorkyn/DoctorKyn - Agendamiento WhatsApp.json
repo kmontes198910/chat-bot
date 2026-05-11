@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-11T20:22:38.664Z",
+  "updatedAt": "2026-05-11T21:14:59.102Z",
   "createdAt": "2026-04-03T15:01:22.497Z",
   "id": "kbWzPpbDMnz4TyA0",
   "name": "DoctorKyn - Agendamiento WhatsApp",
@@ -115,7 +115,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Filtrar solo mensajes válidos de WhatsApp (texto, ubicación o audio)\nconst data = $input.first().json;\nif (!data.contacts || !data.contacts[0]?.wa_id || !data.messages || data.messages.length === 0) {\n    return [];\n}\nconst msg = data.messages[0];\nconst type = msg?.type;\n// Aceptar mensajes de texto (mínimo 3 caracteres, máximo 1000)\nif (type === 'text' && msg.text?.body) {\n    const body = msg.text.body.trim();\n    if (body.length < 3) return []; // demasiado corto — ignorar silenciosamente\n    data.messages[0].text.body = body.substring(0, 1000);\n    return [{ json: data }];\n}\n// Aceptar mensajes de ubicación — convertir a texto para el AI Agent\nif (type === 'location' && msg.location) {\n    const lat = msg.location.latitude;\n    const lng = msg.location.longitude;\n    data.messages[0].text = { body: `Mi ubicación es: latitud ${lat}, longitud ${lng}` };\n    return [{ json: data }];\n}\n// Aceptar mensajes de audio — se transcribirán en nodos siguientes\nif (type === 'audio' && msg.audio?.id) {\n    return [{ json: data }];\n}\n// Otro tipo de mensaje (imagen, sticker, etc.) — ignorar\nreturn [];"
+        "jsCode": "// Filtrar solo mensajes válidos de WhatsApp (texto, ubicación o audio)\nconst data = $input.first().json;\nif (!data.contacts || !data.contacts[0]?.wa_id || !data.messages || data.messages.length === 0) {\n    return [];\n}\nconst msg = data.messages[0];\nconst type = msg?.type;\n// Aceptar mensajes de texto (máximo 1000 caracteres)\n// Nota: mensajes cortos como \"si\", \"no\", \"1\"..\"99\" son respuestas válidas.\n// El control de abuso queda cubierto por el rate limiter (6 msg/min → violations → ban).\nif (type === 'text' && msg.text?.body) {\n    const body = msg.text.body.trim();\n    if (body.length === 0) return []; // mensaje vacío — ignorar\n    data.messages[0].text.body = body.substring(0, 1000);\n    return [{ json: data }];\n}\n// Aceptar mensajes de ubicación — convertir a texto para el AI Agent\nif (type === 'location' && msg.location) {\n    const lat = msg.location.latitude;\n    const lng = msg.location.longitude;\n    data.messages[0].text = { body: `Mi ubicación es: latitud ${lat}, longitud ${lng}` };\n    return [{ json: data }];\n}\n// Aceptar mensajes de audio — se transcribirán en nodos siguientes\nif (type === 'audio' && msg.audio?.id) {\n    return [{ json: data }];\n}\n// Otro tipo de mensaje (imagen, sticker, etc.) — ignorar\nreturn [];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -173,10 +173,10 @@
       "parameters": {
         "conditions": {
           "options": {
-            "version": 2,
-            "leftValue": "",
             "caseSensitive": true,
-            "typeValidation": "loose"
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
           },
           "conditions": [
             {
@@ -190,7 +190,8 @@
             }
           ],
           "combinator": "and"
-        }
+        },
+        "options": {}
       },
       "name": "IF Rate Limited",
       "type": "n8n-nodes-base.if",
@@ -229,10 +230,10 @@
       "parameters": {
         "conditions": {
           "options": {
-            "version": 2,
-            "leftValue": "",
             "caseSensitive": true,
-            "typeValidation": "strict"
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
           },
           "conditions": [
             {
@@ -247,7 +248,8 @@
             }
           ],
           "combinator": "and"
-        }
+        },
+        "options": {}
       },
       "name": "Check Output",
       "type": "n8n-nodes-base.if",
@@ -286,10 +288,10 @@
       "parameters": {
         "conditions": {
           "options": {
-            "version": 2,
-            "leftValue": "",
             "caseSensitive": true,
-            "typeValidation": "strict"
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
           },
           "conditions": [
             {
@@ -303,7 +305,8 @@
             }
           ],
           "combinator": "and"
-        }
+        },
+        "options": {}
       },
       "name": "IF Audio",
       "type": "n8n-nodes-base.if",
@@ -322,8 +325,8 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        752,
-        16
+        544,
+        -128
       ],
       "id": "44bb55cc-66dd-47ee-88ff-112233445577"
     },
@@ -386,7 +389,8 @@
           "options": {
             "caseSensitive": true,
             "leftValue": "",
-            "typeValidation": "loose"
+            "typeValidation": "loose",
+            "version": 1
           },
           "conditions": [
             {
@@ -458,7 +462,8 @@
           "options": {
             "caseSensitive": true,
             "leftValue": "",
-            "typeValidation": "loose"
+            "typeValidation": "loose",
+            "version": 1
           },
           "conditions": [
             {
@@ -600,7 +605,8 @@
           "options": {
             "caseSensitive": true,
             "leftValue": "",
-            "typeValidation": "loose"
+            "typeValidation": "loose",
+            "version": 1
           },
           "conditions": [
             {
@@ -651,6 +657,14 @@
       }
     },
     {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "value": "jXdJK4q9U32OR95O",
+          "mode": "id"
+        },
+        "options": {}
+      },
       "id": "848a0c53-8d7d-4c7a-9092-642acdb90a9e",
       "name": "Execute: State Reader",
       "type": "n8n-nodes-base.executeWorkflow",
@@ -658,25 +672,12 @@
       "position": [
         560,
         16
-      ],
-      "parameters": {
-        "workflowId": {
-          "__rl": true,
-          "value": "jXdJK4q9U32OR95O",
-          "mode": "id"
-        },
-        "fields": {
-          "values": [
-            {
-              "name": "wa_id",
-              "stringValue": "={{ $(\"WA Trigger\").item.json.contacts[0].wa_id }}"
-            }
-          ]
-        },
-        "options": {}
-      }
+      ]
     },
     {
+      "parameters": {
+        "jsCode": "const inputText = $('Set Input Text').item.json.inputText;\nconst formatted = $('Execute: State Reader').item.json.bookingStateFormatted || '';\nreturn [{ json: { inputText, bookingStateFormatted: formatted } }];"
+      },
       "id": "55adb92b-9ede-4db4-b9fa-a19f1697c399",
       "name": "Inject State",
       "type": "n8n-nodes-base.code",
@@ -684,44 +685,25 @@
       "position": [
         720,
         16
-      ],
-      "parameters": {
-        "jsCode": "const inputText = $('Set Input Text').item.json.inputText;\nconst formatted = $('Execute: State Reader').item.json.bookingStateFormatted || '';\nreturn [{ json: { inputText, bookingStateFormatted: formatted } }];"
-      }
+      ]
     },
     {
-      "id": "4dce3616-e6d3-432c-b35a-99f837882ac6",
-      "name": "Execute: State Updater",
-      "type": "n8n-nodes-base.executeWorkflow",
-      "typeVersion": 1.1,
-      "position": [
-        1500,
-        0
-      ],
       "parameters": {
         "workflowId": {
           "__rl": true,
           "value": "MJc8ivr0PrTyHPIP",
           "mode": "id"
         },
-        "fields": {
-          "values": [
-            {
-              "name": "wa_id",
-              "stringValue": "={{ $(\"WA Trigger\").item.json.contacts[0].wa_id }}"
-            },
-            {
-              "name": "agentOutput",
-              "stringValue": "={{ $json.output }}"
-            },
-            {
-              "name": "inputText",
-              "stringValue": "={{ $(\"Set Input Text\").item.json.inputText }}"
-            }
-          ]
-        },
         "options": {}
-      }
+      },
+      "id": "4dce3616-e6d3-432c-b35a-99f837882ac6",
+      "name": "Execute: State Updater",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.1,
+      "position": [
+        1504,
+        0
+      ]
     }
   ],
   "connections": {
@@ -1046,9 +1028,9 @@
   "staticData": null,
   "meta": null,
   "pinData": {},
-  "versionId": "cd270dc7-e8e3-4dd2-bad1-14f00ca7ac1a",
-  "activeVersionId": "cd270dc7-e8e3-4dd2-bad1-14f00ca7ac1a",
-  "versionCounter": 541,
+  "versionId": "b68db9ed-f273-441e-adc0-cc904b55f03f",
+  "activeVersionId": "b68db9ed-f273-441e-adc0-cc904b55f03f",
+  "versionCounter": 548,
   "triggerCount": 1,
   "shared": [
     {
@@ -1071,9 +1053,9 @@
   ],
   "tags": [],
   "activeVersion": {
-    "updatedAt": "2026-05-11T20:22:38.665Z",
-    "createdAt": "2026-05-11T20:22:38.665Z",
-    "versionId": "cd270dc7-e8e3-4dd2-bad1-14f00ca7ac1a",
+    "updatedAt": "2026-05-11T21:14:59.103Z",
+    "createdAt": "2026-05-11T21:14:59.103Z",
+    "versionId": "b68db9ed-f273-441e-adc0-cc904b55f03f",
     "workflowId": "kbWzPpbDMnz4TyA0",
     "nodes": [
       {
@@ -1184,7 +1166,7 @@
       },
       {
         "parameters": {
-          "jsCode": "// Filtrar solo mensajes válidos de WhatsApp (texto, ubicación o audio)\nconst data = $input.first().json;\nif (!data.contacts || !data.contacts[0]?.wa_id || !data.messages || data.messages.length === 0) {\n    return [];\n}\nconst msg = data.messages[0];\nconst type = msg?.type;\n// Aceptar mensajes de texto (mínimo 3 caracteres, máximo 1000)\nif (type === 'text' && msg.text?.body) {\n    const body = msg.text.body.trim();\n    if (body.length < 3) return []; // demasiado corto — ignorar silenciosamente\n    data.messages[0].text.body = body.substring(0, 1000);\n    return [{ json: data }];\n}\n// Aceptar mensajes de ubicación — convertir a texto para el AI Agent\nif (type === 'location' && msg.location) {\n    const lat = msg.location.latitude;\n    const lng = msg.location.longitude;\n    data.messages[0].text = { body: `Mi ubicación es: latitud ${lat}, longitud ${lng}` };\n    return [{ json: data }];\n}\n// Aceptar mensajes de audio — se transcribirán en nodos siguientes\nif (type === 'audio' && msg.audio?.id) {\n    return [{ json: data }];\n}\n// Otro tipo de mensaje (imagen, sticker, etc.) — ignorar\nreturn [];"
+          "jsCode": "// Filtrar solo mensajes válidos de WhatsApp (texto, ubicación o audio)\nconst data = $input.first().json;\nif (!data.contacts || !data.contacts[0]?.wa_id || !data.messages || data.messages.length === 0) {\n    return [];\n}\nconst msg = data.messages[0];\nconst type = msg?.type;\n// Aceptar mensajes de texto (máximo 1000 caracteres)\n// Nota: mensajes cortos como \"si\", \"no\", \"1\"..\"99\" son respuestas válidas.\n// El control de abuso queda cubierto por el rate limiter (6 msg/min → violations → ban).\nif (type === 'text' && msg.text?.body) {\n    const body = msg.text.body.trim();\n    if (body.length === 0) return []; // mensaje vacío — ignorar\n    data.messages[0].text.body = body.substring(0, 1000);\n    return [{ json: data }];\n}\n// Aceptar mensajes de ubicación — convertir a texto para el AI Agent\nif (type === 'location' && msg.location) {\n    const lat = msg.location.latitude;\n    const lng = msg.location.longitude;\n    data.messages[0].text = { body: `Mi ubicación es: latitud ${lat}, longitud ${lng}` };\n    return [{ json: data }];\n}\n// Aceptar mensajes de audio — se transcribirán en nodos siguientes\nif (type === 'audio' && msg.audio?.id) {\n    return [{ json: data }];\n}\n// Otro tipo de mensaje (imagen, sticker, etc.) — ignorar\nreturn [];"
         },
         "type": "n8n-nodes-base.code",
         "typeVersion": 2,
@@ -1242,10 +1224,10 @@
         "parameters": {
           "conditions": {
             "options": {
-              "version": 2,
-              "leftValue": "",
               "caseSensitive": true,
-              "typeValidation": "loose"
+              "leftValue": "",
+              "typeValidation": "loose",
+              "version": 2
             },
             "conditions": [
               {
@@ -1259,7 +1241,8 @@
               }
             ],
             "combinator": "and"
-          }
+          },
+          "options": {}
         },
         "name": "IF Rate Limited",
         "type": "n8n-nodes-base.if",
@@ -1298,10 +1281,10 @@
         "parameters": {
           "conditions": {
             "options": {
-              "version": 2,
-              "leftValue": "",
               "caseSensitive": true,
-              "typeValidation": "strict"
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
             },
             "conditions": [
               {
@@ -1316,7 +1299,8 @@
               }
             ],
             "combinator": "and"
-          }
+          },
+          "options": {}
         },
         "name": "Check Output",
         "type": "n8n-nodes-base.if",
@@ -1355,10 +1339,10 @@
         "parameters": {
           "conditions": {
             "options": {
-              "version": 2,
-              "leftValue": "",
               "caseSensitive": true,
-              "typeValidation": "strict"
+              "leftValue": "",
+              "typeValidation": "strict",
+              "version": 2
             },
             "conditions": [
               {
@@ -1372,7 +1356,8 @@
               }
             ],
             "combinator": "and"
-          }
+          },
+          "options": {}
         },
         "name": "IF Audio",
         "type": "n8n-nodes-base.if",
@@ -1391,8 +1376,8 @@
         "type": "n8n-nodes-base.code",
         "typeVersion": 2,
         "position": [
-          752,
-          16
+          544,
+          -128
         ],
         "id": "44bb55cc-66dd-47ee-88ff-112233445577"
       },
@@ -1455,7 +1440,8 @@
             "options": {
               "caseSensitive": true,
               "leftValue": "",
-              "typeValidation": "loose"
+              "typeValidation": "loose",
+              "version": 1
             },
             "conditions": [
               {
@@ -1527,7 +1513,8 @@
             "options": {
               "caseSensitive": true,
               "leftValue": "",
-              "typeValidation": "loose"
+              "typeValidation": "loose",
+              "version": 1
             },
             "conditions": [
               {
@@ -1669,7 +1656,8 @@
             "options": {
               "caseSensitive": true,
               "leftValue": "",
-              "typeValidation": "loose"
+              "typeValidation": "loose",
+              "version": 1
             },
             "conditions": [
               {
@@ -1720,6 +1708,14 @@
         }
       },
       {
+        "parameters": {
+          "workflowId": {
+            "__rl": true,
+            "value": "jXdJK4q9U32OR95O",
+            "mode": "id"
+          },
+          "options": {}
+        },
         "id": "848a0c53-8d7d-4c7a-9092-642acdb90a9e",
         "name": "Execute: State Reader",
         "type": "n8n-nodes-base.executeWorkflow",
@@ -1727,25 +1723,12 @@
         "position": [
           560,
           16
-        ],
-        "parameters": {
-          "workflowId": {
-            "__rl": true,
-            "value": "jXdJK4q9U32OR95O",
-            "mode": "id"
-          },
-          "fields": {
-            "values": [
-              {
-                "name": "wa_id",
-                "stringValue": "={{ $(\"WA Trigger\").item.json.contacts[0].wa_id }}"
-              }
-            ]
-          },
-          "options": {}
-        }
+        ]
       },
       {
+        "parameters": {
+          "jsCode": "const inputText = $('Set Input Text').item.json.inputText;\nconst formatted = $('Execute: State Reader').item.json.bookingStateFormatted || '';\nreturn [{ json: { inputText, bookingStateFormatted: formatted } }];"
+        },
         "id": "55adb92b-9ede-4db4-b9fa-a19f1697c399",
         "name": "Inject State",
         "type": "n8n-nodes-base.code",
@@ -1753,44 +1736,25 @@
         "position": [
           720,
           16
-        ],
-        "parameters": {
-          "jsCode": "const inputText = $('Set Input Text').item.json.inputText;\nconst formatted = $('Execute: State Reader').item.json.bookingStateFormatted || '';\nreturn [{ json: { inputText, bookingStateFormatted: formatted } }];"
-        }
+        ]
       },
       {
-        "id": "4dce3616-e6d3-432c-b35a-99f837882ac6",
-        "name": "Execute: State Updater",
-        "type": "n8n-nodes-base.executeWorkflow",
-        "typeVersion": 1.1,
-        "position": [
-          1040,
-          16
-        ],
         "parameters": {
           "workflowId": {
             "__rl": true,
             "value": "MJc8ivr0PrTyHPIP",
             "mode": "id"
           },
-          "fields": {
-            "values": [
-              {
-                "name": "wa_id",
-                "stringValue": "={{ $(\"WA Trigger\").item.json.contacts[0].wa_id }}"
-              },
-              {
-                "name": "agentOutput",
-                "stringValue": "={{ $json.output }}"
-              },
-              {
-                "name": "inputText",
-                "stringValue": "={{ $(\"Set Input Text\").item.json.inputText }}"
-              }
-            ]
-          },
           "options": {}
-        }
+        },
+        "id": "4dce3616-e6d3-432c-b35a-99f837882ac6",
+        "name": "Execute: State Updater",
+        "type": "n8n-nodes-base.executeWorkflow",
+        "typeVersion": 1.1,
+        "position": [
+          1504,
+          0
+        ]
       }
     ],
     "connections": {
@@ -2070,7 +2034,7 @@
         "main": [
           [
             {
-              "node": "Execute: State Updater",
+              "node": "Check Output",
               "type": "main",
               "index": 0
             }
@@ -2079,9 +2043,25 @@
       },
       "Execute: State Updater": {
         "main": [
+          []
+        ]
+      },
+      "Reply WhatsApp": {
+        "main": [
           [
             {
-              "node": "Check Output",
+              "node": "Execute: State Updater",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Fallback Reply WhatsApp": {
+        "main": [
+          [
+            {
+              "node": "Execute: State Updater",
               "type": "main",
               "index": 0
             }
@@ -2095,18 +2075,18 @@
     "autosaved": false,
     "workflowPublishHistory": [
       {
-        "createdAt": "2026-05-11T20:22:41.663Z",
-        "id": 216,
+        "createdAt": "2026-05-11T21:15:01.333Z",
+        "id": 257,
         "workflowId": "kbWzPpbDMnz4TyA0",
-        "versionId": "cd270dc7-e8e3-4dd2-bad1-14f00ca7ac1a",
+        "versionId": "b68db9ed-f273-441e-adc0-cc904b55f03f",
         "event": "deactivated",
         "userId": "5963f460-3684-486d-8f21-cefca0d4b976"
       },
       {
-        "createdAt": "2026-05-11T20:22:44.354Z",
-        "id": 217,
+        "createdAt": "2026-05-11T21:15:04.320Z",
+        "id": 258,
         "workflowId": "kbWzPpbDMnz4TyA0",
-        "versionId": "cd270dc7-e8e3-4dd2-bad1-14f00ca7ac1a",
+        "versionId": "b68db9ed-f273-441e-adc0-cc904b55f03f",
         "event": "activated",
         "userId": "5963f460-3684-486d-8f21-cefca0d4b976"
       }
