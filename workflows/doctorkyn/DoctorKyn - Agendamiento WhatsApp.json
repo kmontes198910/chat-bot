@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-05-11T21:14:59.102Z",
+  "updatedAt": "2026-05-14T16:32:09.044Z",
   "createdAt": "2026-04-03T15:01:22.497Z",
   "id": "kbWzPpbDMnz4TyA0",
   "name": "DoctorKyn - Agendamiento WhatsApp",
@@ -40,7 +40,7 @@
         "promptType": "define",
         "text": "={{ $json.inputText }}",
         "options": {
-          "systemMessage": "=Eres el asistente virtual de DoctorKyn para agendamiento de citas médicas por WhatsApp. Hablas en español de forma amable, concisa y profesional.\n\n## CONTEXTO\nFecha de hoy (fija para esta sesión): {{ $now.format('yyyy-MM-dd') }}\nUsá SOLO esta fecha como referencia. No inventes fechas.\n\n## HERRAMIENTAS (via MCP Client)\n\n- find_patient(identification) — busca paciente por cédula\n- get_available_services() — retorna servicios disponibles (nombres exactos)\n- get_available_clinics(serviceName?) — retorna clínicas disponibles para el servicio\n- find_nearby_clinics(latitude, longitude, serviceName?) — clínicas por distancia\n- get_available_days(clinicName, serviceName, startDate, endDate) — fechas con disponibilidad\n- get_time_slots(clinicName, serviceName, date) — horarios del día, incluye scheduleId por slot\n- get_discounts(patientCedula, clinicName) — descuentos aplicables\n- book_appointment(clinicName, serviceName, date, time, patientCedula, price) — retorna receiptId. price = precio FINAL con descuento.\n- get_appointment(receiptId) — detalles de cita\n- reschedule_appointment(receiptId, newScheduleId) — reprograma usando scheduleId de get_time_slots\n- cancel_appointment(receiptId) — cancela cita\n\nTodas las herramientas aceptan NOMBRES (no UUIDs), excepto newScheduleId en reschedule que viene de get_time_slots. NUNCA inventes UUIDs ni nombres.\n\n## FLUJO DE AGENDAMIENTO\n\nIMPORTANTE: Antes de cada pregunta, revisá el bloque PROGRESO DE RESERVA ACTUAL al final de este mensaje. Seguí estas reglas estrictamente:\n\n- Si un campo ya tiene valor → NO lo vuelvas a pedir. Úsalo directamente.\n- Si un campo muestra ⚠️ conflict → resuélvelo antes de avanzar.\n- Si status es \"booked\" → no inicies una nueva reserva sin confirmación explícita del paciente.\n- Siempre retomá desde el primer campo con valor null en esta secuencia:\n  cedula → service → clinic → date → time_slot → (confirmar precio) → book_appointment\n\nPasos:\n1. cedula null   → pedí la cédula → find_patient(identification)\n2. service null  → SIEMPRE llamá get_available_services() y mostrá lista numerada\n3. clinic null   → get_available_clinics(serviceName). Si no sabe → find_nearby_clinics\n4. date null     → get_available_days(clinicName, serviceName, hoy, hoy+30d). Máx 5 opciones.\n5. time_slot null → get_time_slots(clinicName, serviceName, date). Incluye scheduleId por slot.\n6. Todos completos → get_discounts(cedula, clinic) → confirmá precio final → book_appointment\n## FLUJOS ALTERNATIVOS\n\n- Consultar cita: Pedí el receiptId → get_appointment(receiptId). Si no lo recuerda, indicale que está en el mensaje de confirmación.\n- Reprogramar: receiptId → get_available_days + get_time_slots → elegí slot → reschedule_appointment(receiptId, newScheduleId=scheduleId del slot).\n- Cancelar: receiptId → cancel_appointment(receiptId).\n\n## MANEJO DE ERRORES\n\n- find_patient falla → la cédula no está registrada. Pedí que se registre en DoctorKyn o contacte a la clínica.\n- book_appointment retorna \"ya tiene cita pendiente\" → informá al paciente, ofrecé ver la cita existente (get_appointment) o reprogramarla.\n- get_available_services vacío → no hay disponibilidad, sugerí contactar directamente a la clínica.\n- get_available_clinics vacío para un servicio → no hay clínicas con ese servicio, ofrecé otras especialidades.\n- Sin receiptId para cancelar/reprogramar → indicá que está en el mensaje de confirmación anterior.\n\n## REGLAS\n- NUNCA agendes sin confirmación explícita. Acepta: sí, confirmo, dale, ok, va, perfecto, claro.\n- SIEMPRE muestra precio final (con descuento) antes de reservar.\n- Mensajes cortos: máx 4 líneas. Listas: máx 5 ítems numerados.\n- Emojis moderados: 📅 🕐 ✅ 👨‍⚕️\n- Formato fechas: 'Lunes 6 de Abril', horas: '09:00'\n- No menciones nombre de doctor si no lo devolvió get_time_slots.\n- Los PRECIOS dependen de la clínica: NUNCA muestres precios de servicios sin haber identificado primero la clínica. El precio real se obtiene de get_time_slots (precio por slot) o get_discounts (precio con descuento). Si el paciente pregunta '¿cuánto cuesta?' sin haber elegido clínica, preguntale primero en qué clínica.\n\n{{ $json.bookingStateFormatted }}",
+          "systemMessage": "=Eres el asistente virtual de DoctorKyn para agendamiento de citas m\u00e9dicas por WhatsApp. Hablas en espa\u00f1ol de forma amable, concisa y profesional.\n\n## CONTEXTO\nFecha de hoy (fija para esta sesi\u00f3n): {{ $now.format('yyyy-MM-dd') }}\nUs\u00e1 SOLO esta fecha como referencia. No inventes fechas.\n\n## HERRAMIENTAS (via MCP Client)\n\n- find_patient(identification) \u2014 busca paciente por c\u00e9dula\n- get_available_services() \u2014 retorna servicios disponibles (nombres exactos)\n- get_available_clinics(serviceName?) \u2014 retorna cl\u00ednicas disponibles para el servicio\n- find_nearby_clinics(latitude, longitude, serviceName?) \u2014 cl\u00ednicas por distancia\n- get_available_days(clinicName, serviceName, startDate, endDate) \u2014 fechas con disponibilidad\n- get_time_slots(clinicName, serviceName, date) \u2014 horarios del d\u00eda, incluye scheduleId por slot\n- get_discounts(patientCedula, clinicName) \u2014 descuentos aplicables\n- book_appointment(clinicName, serviceName, date, time, patientCedula, price) \u2014 retorna receiptId. price = precio FINAL con descuento.\n- get_appointment(receiptId) \u2014 detalles de cita\n- reschedule_appointment(receiptId, newScheduleId) \u2014 reprograma usando scheduleId de get_time_slots\n- cancel_appointment(receiptId) \u2014 cancela cita\n\nTodas las herramientas aceptan NOMBRES (no UUIDs), excepto newScheduleId en reschedule que viene de get_time_slots. NUNCA inventes UUIDs ni nombres.\n\n## FLUJO DE AGENDAMIENTO\n\nIMPORTANTE: Antes de cada pregunta, revis\u00e1 el bloque PROGRESO DE RESERVA ACTUAL al final de este mensaje. Segu\u00ed estas reglas estrictamente:\n\n- Si un campo ya tiene valor \u2192 NO lo vuelvas a pedir. \u00dasalo directamente.\n- Si un campo muestra \u26a0\ufe0f conflict \u2192 resu\u00e9lvelo antes de avanzar.\n- Si status es \"booked\" \u2192 no inicies una nueva reserva sin confirmaci\u00f3n expl\u00edcita del paciente.\n- Siempre retom\u00e1 desde el primer campo con valor null en esta secuencia:\n  cedula \u2192 service \u2192 clinic \u2192 date \u2192 time_slot \u2192 (confirmar precio) \u2192 book_appointment\n\nPasos:\n1. cedula null   \u2192 ped\u00ed la c\u00e9dula \u2192 find_patient(identification)\n2. service null  \u2192 SIEMPRE llam\u00e1 get_available_services() y mostr\u00e1 lista numerada\n3. clinic null   \u2192 get_available_clinics(serviceName). Si no sabe \u2192 find_nearby_clinics\n4. date null     \u2192 get_available_days(clinicName, serviceName, hoy, hoy+30d). M\u00e1x 5 opciones.\n5. time_slot null \u2192 get_time_slots(clinicName, serviceName, date). Incluye scheduleId por slot.\n6. Todos completos \u2192 get_discounts(cedula, clinic) \u2192 confirm\u00e1 precio final \u2192 book_appointment\n## FLUJOS ALTERNATIVOS\n\n- Consultar cita: Ped\u00ed el receiptId \u2192 get_appointment(receiptId). Si no lo recuerda, indicale que est\u00e1 en el mensaje de confirmaci\u00f3n.\n- Reprogramar: receiptId \u2192 get_available_days + get_time_slots \u2192 eleg\u00ed slot \u2192 reschedule_appointment(receiptId, newScheduleId=scheduleId del slot).\n- Cancelar: receiptId \u2192 cancel_appointment(receiptId).\n\n## MANEJO DE ERRORES\n\n- find_patient falla \u2192 la c\u00e9dula no est\u00e1 registrada. Ped\u00ed que se registre en DoctorKyn o contacte a la cl\u00ednica.\n- book_appointment retorna \"ya tiene cita pendiente\" \u2192 inform\u00e1 al paciente, ofrec\u00e9 ver la cita existente (get_appointment) o reprogramarla.\n- get_available_services vac\u00edo \u2192 no hay disponibilidad, suger\u00ed contactar directamente a la cl\u00ednica.\n- get_available_clinics vac\u00edo para un servicio \u2192 no hay cl\u00ednicas con ese servicio, ofrec\u00e9 otras especialidades.\n- Sin receiptId para cancelar/reprogramar \u2192 indic\u00e1 que est\u00e1 en el mensaje de confirmaci\u00f3n anterior.\n\n## REGLAS\n- NUNCA agendes sin confirmaci\u00f3n expl\u00edcita. Acepta: s\u00ed, confirmo, dale, ok, va, perfecto, claro.\n- SIEMPRE muestra precio final (con descuento) antes de reservar.\n- Mensajes cortos: m\u00e1x 4 l\u00edneas. Listas: m\u00e1x 5 \u00edtems numerados.\n- Emojis moderados: \ud83d\udcc5 \ud83d\udd50 \u2705 \ud83d\udc68\u200d\u2695\ufe0f\n- Formato fechas: 'Lunes 6 de Abril', horas: '09:00'\n- No menciones nombre de doctor si no lo devolvi\u00f3 get_time_slots.\n- Los PRECIOS dependen de la cl\u00ednica: NUNCA muestres precios de servicios sin haber identificado primero la cl\u00ednica. El precio real se obtiene de get_time_slots (precio por slot) o get_discounts (precio con descuento). Si el paciente pregunta '\u00bfcu\u00e1nto cuesta?' sin haber elegido cl\u00ednica, preguntale primero en qu\u00e9 cl\u00ednica.\n\n{{ $json.bookingStateFormatted }}",
           "maxIterations": 10
         }
       },
@@ -115,7 +115,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Filtrar solo mensajes válidos de WhatsApp (texto, ubicación o audio)\nconst data = $input.first().json;\nif (!data.contacts || !data.contacts[0]?.wa_id || !data.messages || data.messages.length === 0) {\n    return [];\n}\nconst msg = data.messages[0];\nconst type = msg?.type;\n// Aceptar mensajes de texto (máximo 1000 caracteres)\n// Nota: mensajes cortos como \"si\", \"no\", \"1\"..\"99\" son respuestas válidas.\n// El control de abuso queda cubierto por el rate limiter (6 msg/min → violations → ban).\nif (type === 'text' && msg.text?.body) {\n    const body = msg.text.body.trim();\n    if (body.length === 0) return []; // mensaje vacío — ignorar\n    data.messages[0].text.body = body.substring(0, 1000);\n    return [{ json: data }];\n}\n// Aceptar mensajes de ubicación — convertir a texto para el AI Agent\nif (type === 'location' && msg.location) {\n    const lat = msg.location.latitude;\n    const lng = msg.location.longitude;\n    data.messages[0].text = { body: `Mi ubicación es: latitud ${lat}, longitud ${lng}` };\n    return [{ json: data }];\n}\n// Aceptar mensajes de audio — se transcribirán en nodos siguientes\nif (type === 'audio' && msg.audio?.id) {\n    return [{ json: data }];\n}\n// Otro tipo de mensaje (imagen, sticker, etc.) — ignorar\nreturn [];"
+        "jsCode": "// Filtrar solo mensajes v\u00e1lidos de WhatsApp (texto, ubicaci\u00f3n o audio)\nconst data = $input.first().json;\nif (!data.contacts || !data.contacts[0]?.wa_id || !data.messages || data.messages.length === 0) {\n    return [];\n}\nconst msg = data.messages[0];\nconst type = msg?.type;\n// Aceptar mensajes de texto (m\u00e1ximo 1000 caracteres)\n// Nota: mensajes cortos como \"si\", \"no\", \"1\"..\"99\" son respuestas v\u00e1lidas.\n// El control de abuso queda cubierto por el rate limiter (6 msg/min \u2192 violations \u2192 ban).\nif (type === 'text' && msg.text?.body) {\n    const body = msg.text.body.trim();\n    if (body.length === 0) return []; // mensaje vac\u00edo \u2014 ignorar\n    data.messages[0].text.body = body.substring(0, 1000);\n    return [{ json: data }];\n}\n// Aceptar mensajes de ubicaci\u00f3n \u2014 convertir a texto para el AI Agent\nif (type === 'location' && msg.location) {\n    const lat = msg.location.latitude;\n    const lng = msg.location.longitude;\n    data.messages[0].text = { body: `Mi ubicaci\u00f3n es: latitud ${lat}, longitud ${lng}` };\n    return [{ json: data }];\n}\n// Aceptar mensajes de audio \u2014 se transcribir\u00e1n en nodos siguientes\nif (type === 'audio' && msg.audio?.id) {\n    return [{ json: data }];\n}\n// Otro tipo de mensaje (imagen, sticker, etc.) \u2014 ignorar\nreturn [];"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -175,14 +175,14 @@
           "options": {
             "caseSensitive": true,
             "leftValue": "",
-            "typeValidation": "loose",
+            "typeValidation": "strict",
             "version": 2
           },
           "conditions": [
             {
               "id": "b2c3d4e5-f6a7-8901-bcde-234567890abc",
               "leftValue": "={{ Object.values($json)[0] }}",
-              "rightValue": 6,
+              "rightValue": 24,
               "operator": {
                 "type": "number",
                 "operation": "gt"
@@ -207,7 +207,7 @@
         "operation": "send",
         "phoneNumberId": "541998385660923",
         "recipientPhoneNumber": "={{ $('WA Trigger').item.json.contacts[0].wa_id }}",
-        "textBody": "⏳ Recibí varios mensajes tuyos muy seguidos.\n\nPara evitar errores, solo proceso *3 mensajes por minuto* por persona. Espera unos segundos y vuelve a escribirme — estaré aquí. 🙏",
+        "textBody": "\u23f3 Recib\u00ed varios mensajes tuyos muy seguidos.\n\nPara evitar errores, solo proceso *24 mensajes por minuto* por persona. Espera unos segundos y vuelve a escribirme \u2014 estar\u00e9 aqu\u00ed. \ud83d\ude4f",
         "additionalFields": {}
       },
       "name": "Rate Limit Reply",
@@ -265,7 +265,7 @@
         "operation": "send",
         "phoneNumberId": "541998385660923",
         "recipientPhoneNumber": "={{ $('WA Trigger').item.json.contacts[0].wa_id }}",
-        "textBody": "Lo sentimos, estamos teniendo dificultades técnicas. Por favor, intenta nuevamente en unos minutos. 🙏",
+        "textBody": "Lo sentimos, estamos teniendo dificultades t\u00e9cnicas. Por favor, intenta nuevamente en unos minutos. \ud83d\ude4f",
         "additionalFields": {}
       },
       "name": "Fallback Reply WhatsApp",
@@ -319,7 +319,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Prepara inputText para el AI Agent\n// Para texto/ubicación: lee de Code in JavaScript\n// Para audio: lee .transcription devuelto por sub-workflow STT\nconst msgType = $('Code in JavaScript').item.json.messages[0].type;\nif (msgType === 'audio') {\n  const transcription = $json.transcription || '';\n  if (!transcription) return []; // sub-workflow ya envió el aviso al paciente\n  return [{ json: { inputText: `[Nota de voz]: ${transcription}` } }];\n}\nreturn [{ json: { inputText: $('Code in JavaScript').item.json.messages[0].text.body } }];"
+        "jsCode": "// Prepara inputText para el AI Agent\n// Para texto/ubicaci\u00f3n: lee de Code in JavaScript\n// Para audio: lee .transcription devuelto por sub-workflow STT\nconst msgType = $('Code in JavaScript').item.json.messages[0].type;\nif (msgType === 'audio') {\n  const transcription = $json.transcription || '';\n  if (!transcription) return []; // sub-workflow ya envi\u00f3 el aviso al paciente\n  return [{ json: { inputText: `[Nota de voz]: ${transcription}` } }];\n}\nreturn [{ json: { inputText: $('Code in JavaScript').item.json.messages[0].text.body } }];"
       },
       "name": "Set Input Text",
       "type": "n8n-nodes-base.code",
@@ -389,7 +389,7 @@
           "options": {
             "caseSensitive": true,
             "leftValue": "",
-            "typeValidation": "loose",
+            "typeValidation": "strict",
             "version": 1
           },
           "conditions": [
@@ -462,14 +462,14 @@
           "options": {
             "caseSensitive": true,
             "leftValue": "",
-            "typeValidation": "loose",
+            "typeValidation": "strict",
             "version": 1
           },
           "conditions": [
             {
               "id": "43f90437-770d-498a-80fc-8780dfaaebca",
               "leftValue": "={{ Object.values($json)[0] }}",
-              "rightValue": 3,
+              "rightValue": 20,
               "operator": {
                 "type": "number",
                 "operation": "gte"
@@ -517,7 +517,7 @@
         "operation": "send",
         "phoneNumberId": "541998385660923",
         "recipientPhoneNumber": "={{ $('WA Trigger').item.json.contacts[0].wa_id }}",
-        "textBody": "🚫 Tu acceso ha sido suspendido temporalmente por *1 hora* debido a un uso inusual reiterado.\n\nPodrás escribirnos nuevamente en *60 minutos*. Si crees que esto fue un error, comunícate directamente con la clínica. 🙏",
+        "textBody": "\ud83d\udeab Tu acceso ha sido suspendido temporalmente por *1 hora* debido a un uso inusual reiterado.\n\nPodr\u00e1s escribirnos nuevamente en *60 minutos*. Si crees que esto fue un error, comun\u00edcate directamente con la cl\u00ednica. \ud83d\ude4f",
         "additionalFields": {}
       },
       "id": "be73f7bb-4f56-4cc3-8ff7-41b4edf6bc3c",
@@ -538,13 +538,13 @@
     },
     {
       "parameters": {
-        "content": "## 📨 Entrada de Mensajes\nRecibe el webhook de WhatsApp y filtra mensajes válidos.\n\n- **Acepta:** texto (≥ 3 caracteres), audio, ubicación\n- **Descarta:** imágenes, stickers, textos demasiado cortos\n- Trunca texto a 1 000 caracteres máximo",
+        "content": "## \ud83d\udce8 Entrada de Mensajes\nRecibe el webhook de WhatsApp y filtra mensajes v\u00e1lidos.\n\n- **Acepta:** texto (\u2265 3 caracteres), audio, ubicaci\u00f3n\n- **Descarta:** im\u00e1genes, stickers, textos demasiado cortos\n- Trunca texto a 1 000 caracteres m\u00e1ximo",
         "height": 320,
         "width": 554,
         "color": 4
       },
       "id": "bdf268a5-3765-4eab-b010-b6b445547892",
-      "name": "🗒 Entrada de Mensajes",
+      "name": "\ud83d\uddd2 Entrada de Mensajes",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
@@ -554,13 +554,13 @@
     },
     {
       "parameters": {
-        "content": "## 🛡️ Protección contra Abuso\nBloquea spam y ataques DoS antes de consumir tokens del Agente IA.\n\n- **Check Ban** — Redis GET: verifica ban activo por `wa_id` (TTL 1 h)\n- **Rate Limit** — máx. 3 mensajes/minuto por usuario\n- **Ban progresivo** — 3+ violaciones en 1 h → suspensión de 1 h con aviso\n  - `violations` key: TTL rodante de 1 h (se renueva en cada infracción)\n  - `ban` key: TTL fijo de 1 h → usuarios baneados caen silenciosamente",
+        "content": "## \ud83d\udee1\ufe0f Protecci\u00f3n contra Abuso\nBloquea spam y ataques DoS antes de consumir tokens del Agente IA.\n\n- **Check Ban** \u2014 Redis GET: verifica ban activo por `wa_id` (TTL 1 h)\n- **Rate Limit** \u2014 m\u00e1x. 3 mensajes/minuto por usuario\n- **Ban progresivo** \u2014 3+ violaciones en 1 h \u2192 suspensi\u00f3n de 1 h con aviso\n  - `violations` key: TTL rodante de 1 h (se renueva en cada infracci\u00f3n)\n  - `ban` key: TTL fijo de 1 h \u2192 usuarios baneados caen silenciosamente",
         "height": 780,
         "width": 1380,
         "color": 3
       },
       "id": "560195e4-f6a2-4dfb-a548-75c107aae925",
-      "name": "🗒 Protección contra Abuso",
+      "name": "\ud83d\uddd2 Protecci\u00f3n contra Abuso",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
@@ -570,13 +570,13 @@
     },
     {
       "parameters": {
-        "content": "## 🎤 Enrutamiento y Preparación de Entrada\nConvierte cualquier tipo de mensaje en `inputText` uniforme para el Agente IA.\n\n- **Audio** → sub-workflow STT (Groq Whisper primary, ElevenLabs fallback)\n  - Valida calidad: descarta artefactos `[BLANK_AUDIO]`, ruido puro, < 2 palabras\n- **Texto / Ubicación** → pasa directo a `Set Input Text`\n- **Salida:** `{ inputText: \"...\" }` — formato uniforme siempre",
+        "content": "## \ud83c\udfa4 Enrutamiento y Preparaci\u00f3n de Entrada\nConvierte cualquier tipo de mensaje en `inputText` uniforme para el Agente IA.\n\n- **Audio** \u2192 sub-workflow STT (Groq Whisper primary, ElevenLabs fallback)\n  - Valida calidad: descarta artefactos `[BLANK_AUDIO]`, ruido puro, < 2 palabras\n- **Texto / Ubicaci\u00f3n** \u2192 pasa directo a `Set Input Text`\n- **Salida:** `{ inputText: \"...\" }` \u2014 formato uniforme siempre",
         "height": 580,
         "width": 672,
         "color": 5
       },
       "id": "125f4378-277a-41a7-880f-41aabb008991",
-      "name": "🗒 Enrutamiento y Preparación",
+      "name": "\ud83d\uddd2 Enrutamiento y Preparaci\u00f3n",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
@@ -586,12 +586,12 @@
     },
     {
       "parameters": {
-        "content": "## 🤖 Agente IA — DoctorKyn\nProcesa el mensaje y genera la respuesta del asistente médico.\n\n- **Modelo:** GPT-4.1-mini (temp 0.1, máx 600 tokens)\n- **Memoria:** Redis por sesión `wa_id` — TTL 2 h, ventana 30 mensajes\n- **Herramientas:** MCP Client → calendario / agendamiento\n- **Fallback:** respuesta genérica si el agente no produce output válido",
+        "content": "## \ud83e\udd16 Agente IA \u2014 DoctorKyn\nProcesa el mensaje y genera la respuesta del asistente m\u00e9dico.\n\n- **Modelo:** GPT-4.1-mini (temp 0.1, m\u00e1x 600 tokens)\n- **Memoria:** Redis por sesi\u00f3n `wa_id` \u2014 TTL 2 h, ventana 30 mensajes\n- **Herramientas:** MCP Client \u2192 calendario / agendamiento\n- **Fallback:** respuesta gen\u00e9rica si el agente no produce output v\u00e1lido",
         "height": 584,
         "width": 712
       },
       "id": "cd3e1772-34db-4d2b-a39d-c3864927beba",
-      "name": "🗒 Agente IA",
+      "name": "\ud83d\uddd2 Agente IA",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
@@ -637,7 +637,7 @@
         "operation": "send",
         "phoneNumberId": "541998385660923",
         "recipientPhoneNumber": "={{ $('WA Trigger').item.json.contacts[0].wa_id }}",
-        "textBody": "={{ '⚠️ Llevas ' + Object.values($json)[0] + '/6 mensajes este minuto. ' + ((6 - Object.values($json)[0]) > 0 ? 'Te quedan *' + (6 - Object.values($json)[0]) + '* antes del límite.' : 'El próximo mensaje será bloqueado.') }}",
+        "textBody": "={{ '\u26a0\ufe0f Llevas ' + Object.values($json)[0] + '/6 mensajes este minuto. ' + ((6 - Object.values($json)[0]) > 0 ? 'Te quedan *' + (6 - Object.values($json)[0]) + '* antes del l\u00edmite.' : 'El pr\u00f3ximo mensaje ser\u00e1 bloqueado.') }}",
         "additionalFields": {}
       },
       "id": "5790ae2a-6ec1-4024-9d07-12ee372e63be",
@@ -1028,9 +1028,9 @@
   "staticData": null,
   "meta": null,
   "pinData": {},
-  "versionId": "b68db9ed-f273-441e-adc0-cc904b55f03f",
-  "activeVersionId": "b68db9ed-f273-441e-adc0-cc904b55f03f",
-  "versionCounter": 548,
+  "versionId": "8308bfcb-0de9-4b6a-bf58-fa390bcbbb8d",
+  "activeVersionId": "8308bfcb-0de9-4b6a-bf58-fa390bcbbb8d",
+  "versionCounter": 560,
   "triggerCount": 1,
   "shared": [
     {
@@ -1053,9 +1053,9 @@
   ],
   "tags": [],
   "activeVersion": {
-    "updatedAt": "2026-05-11T21:14:59.103Z",
-    "createdAt": "2026-05-11T21:14:59.103Z",
-    "versionId": "b68db9ed-f273-441e-adc0-cc904b55f03f",
+    "updatedAt": "2026-05-14T16:32:29.178Z",
+    "createdAt": "2026-05-14T16:32:09.046Z",
+    "versionId": "8308bfcb-0de9-4b6a-bf58-fa390bcbbb8d",
     "workflowId": "kbWzPpbDMnz4TyA0",
     "nodes": [
       {
@@ -1091,7 +1091,7 @@
           "promptType": "define",
           "text": "={{ $json.inputText }}",
           "options": {
-            "systemMessage": "=Eres el asistente virtual de DoctorKyn para agendamiento de citas médicas por WhatsApp. Hablas en español de forma amable, concisa y profesional.\n\n## CONTEXTO\nFecha de hoy (fija para esta sesión): {{ $now.format('yyyy-MM-dd') }}\nUsá SOLO esta fecha como referencia. No inventes fechas.\n\n## HERRAMIENTAS (via MCP Client)\n\n- find_patient(identification) — busca paciente por cédula\n- get_available_services() — retorna servicios disponibles (nombres exactos)\n- get_available_clinics(serviceName?) — retorna clínicas disponibles para el servicio\n- find_nearby_clinics(latitude, longitude, serviceName?) — clínicas por distancia\n- get_available_days(clinicName, serviceName, startDate, endDate) — fechas con disponibilidad\n- get_time_slots(clinicName, serviceName, date) — horarios del día, incluye scheduleId por slot\n- get_discounts(patientCedula, clinicName) — descuentos aplicables\n- book_appointment(clinicName, serviceName, date, time, patientCedula, price) — retorna receiptId. price = precio FINAL con descuento.\n- get_appointment(receiptId) — detalles de cita\n- reschedule_appointment(receiptId, newScheduleId) — reprograma usando scheduleId de get_time_slots\n- cancel_appointment(receiptId) — cancela cita\n\nTodas las herramientas aceptan NOMBRES (no UUIDs), excepto newScheduleId en reschedule que viene de get_time_slots. NUNCA inventes UUIDs ni nombres.\n\n## FLUJO DE AGENDAMIENTO\n\nIMPORTANTE: Antes de cada pregunta, revisá el bloque PROGRESO DE RESERVA ACTUAL al final de este mensaje. Seguí estas reglas estrictamente:\n\n- Si un campo ya tiene valor → NO lo vuelvas a pedir. Úsalo directamente.\n- Si un campo muestra ⚠️ conflict → resuélvelo antes de avanzar.\n- Si status es \"booked\" → no inicies una nueva reserva sin confirmación explícita del paciente.\n- Siempre retomá desde el primer campo con valor null en esta secuencia:\n  cedula → service → clinic → date → time_slot → (confirmar precio) → book_appointment\n\nPasos:\n1. cedula null   → pedí la cédula → find_patient(identification)\n2. service null  → SIEMPRE llamá get_available_services() y mostrá lista numerada\n3. clinic null   → get_available_clinics(serviceName). Si no sabe → find_nearby_clinics\n4. date null     → get_available_days(clinicName, serviceName, hoy, hoy+30d). Máx 5 opciones.\n5. time_slot null → get_time_slots(clinicName, serviceName, date). Incluye scheduleId por slot.\n6. Todos completos → get_discounts(cedula, clinic) → confirmá precio final → book_appointment\n## FLUJOS ALTERNATIVOS\n\n- Consultar cita: Pedí el receiptId → get_appointment(receiptId). Si no lo recuerda, indicale que está en el mensaje de confirmación.\n- Reprogramar: receiptId → get_available_days + get_time_slots → elegí slot → reschedule_appointment(receiptId, newScheduleId=scheduleId del slot).\n- Cancelar: receiptId → cancel_appointment(receiptId).\n\n## MANEJO DE ERRORES\n\n- find_patient falla → la cédula no está registrada. Pedí que se registre en DoctorKyn o contacte a la clínica.\n- book_appointment retorna \"ya tiene cita pendiente\" → informá al paciente, ofrecé ver la cita existente (get_appointment) o reprogramarla.\n- get_available_services vacío → no hay disponibilidad, sugerí contactar directamente a la clínica.\n- get_available_clinics vacío para un servicio → no hay clínicas con ese servicio, ofrecé otras especialidades.\n- Sin receiptId para cancelar/reprogramar → indicá que está en el mensaje de confirmación anterior.\n\n## REGLAS\n- NUNCA agendes sin confirmación explícita. Acepta: sí, confirmo, dale, ok, va, perfecto, claro.\n- SIEMPRE muestra precio final (con descuento) antes de reservar.\n- Mensajes cortos: máx 4 líneas. Listas: máx 5 ítems numerados.\n- Emojis moderados: 📅 🕐 ✅ 👨‍⚕️\n- Formato fechas: 'Lunes 6 de Abril', horas: '09:00'\n- No menciones nombre de doctor si no lo devolvió get_time_slots.\n- Los PRECIOS dependen de la clínica: NUNCA muestres precios de servicios sin haber identificado primero la clínica. El precio real se obtiene de get_time_slots (precio por slot) o get_discounts (precio con descuento). Si el paciente pregunta '¿cuánto cuesta?' sin haber elegido clínica, preguntale primero en qué clínica.\n\n{{ $json.bookingStateFormatted }}",
+            "systemMessage": "=Eres el asistente virtual de DoctorKyn para agendamiento de citas m\u00e9dicas por WhatsApp. Hablas en espa\u00f1ol de forma amable, concisa y profesional.\n\n## CONTEXTO\nFecha de hoy (fija para esta sesi\u00f3n): {{ $now.format('yyyy-MM-dd') }}\nUs\u00e1 SOLO esta fecha como referencia. No inventes fechas.\n\n## HERRAMIENTAS (via MCP Client)\n\n- find_patient(identification) \u2014 busca paciente por c\u00e9dula\n- get_available_services() \u2014 retorna servicios disponibles (nombres exactos)\n- get_available_clinics(serviceName?) \u2014 retorna cl\u00ednicas disponibles para el servicio\n- find_nearby_clinics(latitude, longitude, serviceName?) \u2014 cl\u00ednicas por distancia\n- get_available_days(clinicName, serviceName, startDate, endDate) \u2014 fechas con disponibilidad\n- get_time_slots(clinicName, serviceName, date) \u2014 horarios del d\u00eda, incluye scheduleId por slot\n- get_discounts(patientCedula, clinicName) \u2014 descuentos aplicables\n- book_appointment(clinicName, serviceName, date, time, patientCedula, price) \u2014 retorna receiptId. price = precio FINAL con descuento.\n- get_appointment(receiptId) \u2014 detalles de cita\n- reschedule_appointment(receiptId, newScheduleId) \u2014 reprograma usando scheduleId de get_time_slots\n- cancel_appointment(receiptId) \u2014 cancela cita\n\nTodas las herramientas aceptan NOMBRES (no UUIDs), excepto newScheduleId en reschedule que viene de get_time_slots. NUNCA inventes UUIDs ni nombres.\n\n## FLUJO DE AGENDAMIENTO\n\nIMPORTANTE: Antes de cada pregunta, revis\u00e1 el bloque PROGRESO DE RESERVA ACTUAL al final de este mensaje. Segu\u00ed estas reglas estrictamente:\n\n- Si un campo ya tiene valor \u2192 NO lo vuelvas a pedir. \u00dasalo directamente.\n- Si un campo muestra \u26a0\ufe0f conflict \u2192 resu\u00e9lvelo antes de avanzar.\n- Si status es \"booked\" \u2192 no inicies una nueva reserva sin confirmaci\u00f3n expl\u00edcita del paciente.\n- Siempre retom\u00e1 desde el primer campo con valor null en esta secuencia:\n  cedula \u2192 service \u2192 clinic \u2192 date \u2192 time_slot \u2192 (confirmar precio) \u2192 book_appointment\n\nPasos:\n1. cedula null   \u2192 ped\u00ed la c\u00e9dula \u2192 find_patient(identification)\n2. service null  \u2192 SIEMPRE llam\u00e1 get_available_services() y mostr\u00e1 lista numerada\n3. clinic null   \u2192 get_available_clinics(serviceName). Si no sabe \u2192 find_nearby_clinics\n4. date null     \u2192 get_available_days(clinicName, serviceName, hoy, hoy+30d). M\u00e1x 5 opciones.\n5. time_slot null \u2192 get_time_slots(clinicName, serviceName, date). Incluye scheduleId por slot.\n6. Todos completos \u2192 get_discounts(cedula, clinic) \u2192 confirm\u00e1 precio final \u2192 book_appointment\n## FLUJOS ALTERNATIVOS\n\n- Consultar cita: Ped\u00ed el receiptId \u2192 get_appointment(receiptId). Si no lo recuerda, indicale que est\u00e1 en el mensaje de confirmaci\u00f3n.\n- Reprogramar: receiptId \u2192 get_available_days + get_time_slots \u2192 eleg\u00ed slot \u2192 reschedule_appointment(receiptId, newScheduleId=scheduleId del slot).\n- Cancelar: receiptId \u2192 cancel_appointment(receiptId).\n\n## MANEJO DE ERRORES\n\n- find_patient falla \u2192 la c\u00e9dula no est\u00e1 registrada. Ped\u00ed que se registre en DoctorKyn o contacte a la cl\u00ednica.\n- book_appointment retorna \"ya tiene cita pendiente\" \u2192 inform\u00e1 al paciente, ofrec\u00e9 ver la cita existente (get_appointment) o reprogramarla.\n- get_available_services vac\u00edo \u2192 no hay disponibilidad, suger\u00ed contactar directamente a la cl\u00ednica.\n- get_available_clinics vac\u00edo para un servicio \u2192 no hay cl\u00ednicas con ese servicio, ofrec\u00e9 otras especialidades.\n- Sin receiptId para cancelar/reprogramar \u2192 indic\u00e1 que est\u00e1 en el mensaje de confirmaci\u00f3n anterior.\n\n## REGLAS\n- NUNCA agendes sin confirmaci\u00f3n expl\u00edcita. Acepta: s\u00ed, confirmo, dale, ok, va, perfecto, claro.\n- SIEMPRE muestra precio final (con descuento) antes de reservar.\n- Mensajes cortos: m\u00e1x 4 l\u00edneas. Listas: m\u00e1x 5 \u00edtems numerados.\n- Emojis moderados: \ud83d\udcc5 \ud83d\udd50 \u2705 \ud83d\udc68\u200d\u2695\ufe0f\n- Formato fechas: 'Lunes 6 de Abril', horas: '09:00'\n- No menciones nombre de doctor si no lo devolvi\u00f3 get_time_slots.\n- Los PRECIOS dependen de la cl\u00ednica: NUNCA muestres precios de servicios sin haber identificado primero la cl\u00ednica. El precio real se obtiene de get_time_slots (precio por slot) o get_discounts (precio con descuento). Si el paciente pregunta '\u00bfcu\u00e1nto cuesta?' sin haber elegido cl\u00ednica, preguntale primero en qu\u00e9 cl\u00ednica.\n\n{{ $json.bookingStateFormatted }}",
             "maxIterations": 10
           }
         },
@@ -1166,7 +1166,7 @@
       },
       {
         "parameters": {
-          "jsCode": "// Filtrar solo mensajes válidos de WhatsApp (texto, ubicación o audio)\nconst data = $input.first().json;\nif (!data.contacts || !data.contacts[0]?.wa_id || !data.messages || data.messages.length === 0) {\n    return [];\n}\nconst msg = data.messages[0];\nconst type = msg?.type;\n// Aceptar mensajes de texto (máximo 1000 caracteres)\n// Nota: mensajes cortos como \"si\", \"no\", \"1\"..\"99\" son respuestas válidas.\n// El control de abuso queda cubierto por el rate limiter (6 msg/min → violations → ban).\nif (type === 'text' && msg.text?.body) {\n    const body = msg.text.body.trim();\n    if (body.length === 0) return []; // mensaje vacío — ignorar\n    data.messages[0].text.body = body.substring(0, 1000);\n    return [{ json: data }];\n}\n// Aceptar mensajes de ubicación — convertir a texto para el AI Agent\nif (type === 'location' && msg.location) {\n    const lat = msg.location.latitude;\n    const lng = msg.location.longitude;\n    data.messages[0].text = { body: `Mi ubicación es: latitud ${lat}, longitud ${lng}` };\n    return [{ json: data }];\n}\n// Aceptar mensajes de audio — se transcribirán en nodos siguientes\nif (type === 'audio' && msg.audio?.id) {\n    return [{ json: data }];\n}\n// Otro tipo de mensaje (imagen, sticker, etc.) — ignorar\nreturn [];"
+          "jsCode": "// Filtrar solo mensajes v\u00e1lidos de WhatsApp (texto, ubicaci\u00f3n o audio)\nconst data = $input.first().json;\nif (!data.contacts || !data.contacts[0]?.wa_id || !data.messages || data.messages.length === 0) {\n    return [];\n}\nconst msg = data.messages[0];\nconst type = msg?.type;\n// Aceptar mensajes de texto (m\u00e1ximo 1000 caracteres)\n// Nota: mensajes cortos como \"si\", \"no\", \"1\"..\"99\" son respuestas v\u00e1lidas.\n// El control de abuso queda cubierto por el rate limiter (6 msg/min \u2192 violations \u2192 ban).\nif (type === 'text' && msg.text?.body) {\n    const body = msg.text.body.trim();\n    if (body.length === 0) return []; // mensaje vac\u00edo \u2014 ignorar\n    data.messages[0].text.body = body.substring(0, 1000);\n    return [{ json: data }];\n}\n// Aceptar mensajes de ubicaci\u00f3n \u2014 convertir a texto para el AI Agent\nif (type === 'location' && msg.location) {\n    const lat = msg.location.latitude;\n    const lng = msg.location.longitude;\n    data.messages[0].text = { body: `Mi ubicaci\u00f3n es: latitud ${lat}, longitud ${lng}` };\n    return [{ json: data }];\n}\n// Aceptar mensajes de audio \u2014 se transcribir\u00e1n en nodos siguientes\nif (type === 'audio' && msg.audio?.id) {\n    return [{ json: data }];\n}\n// Otro tipo de mensaje (imagen, sticker, etc.) \u2014 ignorar\nreturn [];"
         },
         "type": "n8n-nodes-base.code",
         "typeVersion": 2,
@@ -1226,14 +1226,14 @@
             "options": {
               "caseSensitive": true,
               "leftValue": "",
-              "typeValidation": "loose",
+              "typeValidation": "strict",
               "version": 2
             },
             "conditions": [
               {
                 "id": "b2c3d4e5-f6a7-8901-bcde-234567890abc",
                 "leftValue": "={{ Object.values($json)[0] }}",
-                "rightValue": 6,
+                "rightValue": 24,
                 "operator": {
                   "type": "number",
                   "operation": "gt"
@@ -1258,7 +1258,7 @@
           "operation": "send",
           "phoneNumberId": "541998385660923",
           "recipientPhoneNumber": "={{ $('WA Trigger').item.json.contacts[0].wa_id }}",
-          "textBody": "⏳ Recibí varios mensajes tuyos muy seguidos.\n\nPara evitar errores, solo proceso *3 mensajes por minuto* por persona. Espera unos segundos y vuelve a escribirme — estaré aquí. 🙏",
+          "textBody": "\u23f3 Recib\u00ed varios mensajes tuyos muy seguidos.\n\nPara evitar errores, solo proceso *24 mensajes por minuto* por persona. Espera unos segundos y vuelve a escribirme \u2014 estar\u00e9 aqu\u00ed. \ud83d\ude4f",
           "additionalFields": {}
         },
         "name": "Rate Limit Reply",
@@ -1316,7 +1316,7 @@
           "operation": "send",
           "phoneNumberId": "541998385660923",
           "recipientPhoneNumber": "={{ $('WA Trigger').item.json.contacts[0].wa_id }}",
-          "textBody": "Lo sentimos, estamos teniendo dificultades técnicas. Por favor, intenta nuevamente en unos minutos. 🙏",
+          "textBody": "Lo sentimos, estamos teniendo dificultades t\u00e9cnicas. Por favor, intenta nuevamente en unos minutos. \ud83d\ude4f",
           "additionalFields": {}
         },
         "name": "Fallback Reply WhatsApp",
@@ -1370,7 +1370,7 @@
       },
       {
         "parameters": {
-          "jsCode": "// Prepara inputText para el AI Agent\n// Para texto/ubicación: lee de Code in JavaScript\n// Para audio: lee .transcription devuelto por sub-workflow STT\nconst msgType = $('Code in JavaScript').item.json.messages[0].type;\nif (msgType === 'audio') {\n  const transcription = $json.transcription || '';\n  if (!transcription) return []; // sub-workflow ya envió el aviso al paciente\n  return [{ json: { inputText: `[Nota de voz]: ${transcription}` } }];\n}\nreturn [{ json: { inputText: $('Code in JavaScript').item.json.messages[0].text.body } }];"
+          "jsCode": "// Prepara inputText para el AI Agent\n// Para texto/ubicaci\u00f3n: lee de Code in JavaScript\n// Para audio: lee .transcription devuelto por sub-workflow STT\nconst msgType = $('Code in JavaScript').item.json.messages[0].type;\nif (msgType === 'audio') {\n  const transcription = $json.transcription || '';\n  if (!transcription) return []; // sub-workflow ya envi\u00f3 el aviso al paciente\n  return [{ json: { inputText: `[Nota de voz]: ${transcription}` } }];\n}\nreturn [{ json: { inputText: $('Code in JavaScript').item.json.messages[0].text.body } }];"
         },
         "name": "Set Input Text",
         "type": "n8n-nodes-base.code",
@@ -1440,7 +1440,7 @@
             "options": {
               "caseSensitive": true,
               "leftValue": "",
-              "typeValidation": "loose",
+              "typeValidation": "strict",
               "version": 1
             },
             "conditions": [
@@ -1513,14 +1513,14 @@
             "options": {
               "caseSensitive": true,
               "leftValue": "",
-              "typeValidation": "loose",
+              "typeValidation": "strict",
               "version": 1
             },
             "conditions": [
               {
                 "id": "43f90437-770d-498a-80fc-8780dfaaebca",
                 "leftValue": "={{ Object.values($json)[0] }}",
-                "rightValue": 3,
+                "rightValue": 20,
                 "operator": {
                   "type": "number",
                   "operation": "gte"
@@ -1568,7 +1568,7 @@
           "operation": "send",
           "phoneNumberId": "541998385660923",
           "recipientPhoneNumber": "={{ $('WA Trigger').item.json.contacts[0].wa_id }}",
-          "textBody": "🚫 Tu acceso ha sido suspendido temporalmente por *1 hora* debido a un uso inusual reiterado.\n\nPodrás escribirnos nuevamente en *60 minutos*. Si crees que esto fue un error, comunícate directamente con la clínica. 🙏",
+          "textBody": "\ud83d\udeab Tu acceso ha sido suspendido temporalmente por *1 hora* debido a un uso inusual reiterado.\n\nPodr\u00e1s escribirnos nuevamente en *60 minutos*. Si crees que esto fue un error, comun\u00edcate directamente con la cl\u00ednica. \ud83d\ude4f",
           "additionalFields": {}
         },
         "id": "be73f7bb-4f56-4cc3-8ff7-41b4edf6bc3c",
@@ -1589,13 +1589,13 @@
       },
       {
         "parameters": {
-          "content": "## 📨 Entrada de Mensajes\nRecibe el webhook de WhatsApp y filtra mensajes válidos.\n\n- **Acepta:** texto (≥ 3 caracteres), audio, ubicación\n- **Descarta:** imágenes, stickers, textos demasiado cortos\n- Trunca texto a 1 000 caracteres máximo",
+          "content": "## \ud83d\udce8 Entrada de Mensajes\nRecibe el webhook de WhatsApp y filtra mensajes v\u00e1lidos.\n\n- **Acepta:** texto (\u2265 3 caracteres), audio, ubicaci\u00f3n\n- **Descarta:** im\u00e1genes, stickers, textos demasiado cortos\n- Trunca texto a 1 000 caracteres m\u00e1ximo",
           "height": 320,
           "width": 554,
           "color": 4
         },
         "id": "bdf268a5-3765-4eab-b010-b6b445547892",
-        "name": "🗒 Entrada de Mensajes",
+        "name": "\ud83d\uddd2 Entrada de Mensajes",
         "type": "n8n-nodes-base.stickyNote",
         "typeVersion": 1,
         "position": [
@@ -1605,13 +1605,13 @@
       },
       {
         "parameters": {
-          "content": "## 🛡️ Protección contra Abuso\nBloquea spam y ataques DoS antes de consumir tokens del Agente IA.\n\n- **Check Ban** — Redis GET: verifica ban activo por `wa_id` (TTL 1 h)\n- **Rate Limit** — máx. 3 mensajes/minuto por usuario\n- **Ban progresivo** — 3+ violaciones en 1 h → suspensión de 1 h con aviso\n  - `violations` key: TTL rodante de 1 h (se renueva en cada infracción)\n  - `ban` key: TTL fijo de 1 h → usuarios baneados caen silenciosamente",
+          "content": "## \ud83d\udee1\ufe0f Protecci\u00f3n contra Abuso\nBloquea spam y ataques DoS antes de consumir tokens del Agente IA.\n\n- **Check Ban** \u2014 Redis GET: verifica ban activo por `wa_id` (TTL 1 h)\n- **Rate Limit** \u2014 m\u00e1x. 3 mensajes/minuto por usuario\n- **Ban progresivo** \u2014 3+ violaciones en 1 h \u2192 suspensi\u00f3n de 1 h con aviso\n  - `violations` key: TTL rodante de 1 h (se renueva en cada infracci\u00f3n)\n  - `ban` key: TTL fijo de 1 h \u2192 usuarios baneados caen silenciosamente",
           "height": 780,
           "width": 1380,
           "color": 3
         },
         "id": "560195e4-f6a2-4dfb-a548-75c107aae925",
-        "name": "🗒 Protección contra Abuso",
+        "name": "\ud83d\uddd2 Protecci\u00f3n contra Abuso",
         "type": "n8n-nodes-base.stickyNote",
         "typeVersion": 1,
         "position": [
@@ -1621,13 +1621,13 @@
       },
       {
         "parameters": {
-          "content": "## 🎤 Enrutamiento y Preparación de Entrada\nConvierte cualquier tipo de mensaje en `inputText` uniforme para el Agente IA.\n\n- **Audio** → sub-workflow STT (Groq Whisper primary, ElevenLabs fallback)\n  - Valida calidad: descarta artefactos `[BLANK_AUDIO]`, ruido puro, < 2 palabras\n- **Texto / Ubicación** → pasa directo a `Set Input Text`\n- **Salida:** `{ inputText: \"...\" }` — formato uniforme siempre",
+          "content": "## \ud83c\udfa4 Enrutamiento y Preparaci\u00f3n de Entrada\nConvierte cualquier tipo de mensaje en `inputText` uniforme para el Agente IA.\n\n- **Audio** \u2192 sub-workflow STT (Groq Whisper primary, ElevenLabs fallback)\n  - Valida calidad: descarta artefactos `[BLANK_AUDIO]`, ruido puro, < 2 palabras\n- **Texto / Ubicaci\u00f3n** \u2192 pasa directo a `Set Input Text`\n- **Salida:** `{ inputText: \"...\" }` \u2014 formato uniforme siempre",
           "height": 580,
           "width": 672,
           "color": 5
         },
         "id": "125f4378-277a-41a7-880f-41aabb008991",
-        "name": "🗒 Enrutamiento y Preparación",
+        "name": "\ud83d\uddd2 Enrutamiento y Preparaci\u00f3n",
         "type": "n8n-nodes-base.stickyNote",
         "typeVersion": 1,
         "position": [
@@ -1637,12 +1637,12 @@
       },
       {
         "parameters": {
-          "content": "## 🤖 Agente IA — DoctorKyn\nProcesa el mensaje y genera la respuesta del asistente médico.\n\n- **Modelo:** GPT-4.1-mini (temp 0.1, máx 600 tokens)\n- **Memoria:** Redis por sesión `wa_id` — TTL 2 h, ventana 30 mensajes\n- **Herramientas:** MCP Client → calendario / agendamiento\n- **Fallback:** respuesta genérica si el agente no produce output válido",
+          "content": "## \ud83e\udd16 Agente IA \u2014 DoctorKyn\nProcesa el mensaje y genera la respuesta del asistente m\u00e9dico.\n\n- **Modelo:** GPT-4.1-mini (temp 0.1, m\u00e1x 600 tokens)\n- **Memoria:** Redis por sesi\u00f3n `wa_id` \u2014 TTL 2 h, ventana 30 mensajes\n- **Herramientas:** MCP Client \u2192 calendario / agendamiento\n- **Fallback:** respuesta gen\u00e9rica si el agente no produce output v\u00e1lido",
           "height": 584,
           "width": 712
         },
         "id": "cd3e1772-34db-4d2b-a39d-c3864927beba",
-        "name": "🗒 Agente IA",
+        "name": "\ud83d\uddd2 Agente IA",
         "type": "n8n-nodes-base.stickyNote",
         "typeVersion": 1,
         "position": [
@@ -1688,7 +1688,7 @@
           "operation": "send",
           "phoneNumberId": "541998385660923",
           "recipientPhoneNumber": "={{ $('WA Trigger').item.json.contacts[0].wa_id }}",
-          "textBody": "={{ '⚠️ Llevas ' + Object.values($json)[0] + '/6 mensajes este minuto. ' + ((6 - Object.values($json)[0]) > 0 ? 'Te quedan *' + (6 - Object.values($json)[0]) + '* antes del límite.' : 'El próximo mensaje será bloqueado.') }}",
+          "textBody": "={{ '\u26a0\ufe0f Llevas ' + Object.values($json)[0] + '/6 mensajes este minuto. ' + ((6 - Object.values($json)[0]) > 0 ? 'Te quedan *' + (6 - Object.values($json)[0]) + '* antes del l\u00edmite.' : 'El pr\u00f3ximo mensaje ser\u00e1 bloqueado.') }}",
           "additionalFields": {}
         },
         "id": "5790ae2a-6ec1-4024-9d07-12ee372e63be",
@@ -2070,23 +2070,15 @@
       }
     },
     "authors": "Keimer Montes Oliver",
-    "name": null,
-    "description": null,
-    "autosaved": false,
+    "name": "Version 8308bfcb",
+    "description": "",
+    "autosaved": true,
     "workflowPublishHistory": [
       {
-        "createdAt": "2026-05-11T21:15:01.333Z",
-        "id": 257,
+        "createdAt": "2026-05-14T16:32:29.176Z",
+        "id": 260,
         "workflowId": "kbWzPpbDMnz4TyA0",
-        "versionId": "b68db9ed-f273-441e-adc0-cc904b55f03f",
-        "event": "deactivated",
-        "userId": "5963f460-3684-486d-8f21-cefca0d4b976"
-      },
-      {
-        "createdAt": "2026-05-11T21:15:04.320Z",
-        "id": 258,
-        "workflowId": "kbWzPpbDMnz4TyA0",
-        "versionId": "b68db9ed-f273-441e-adc0-cc904b55f03f",
+        "versionId": "8308bfcb-0de9-4b6a-bf58-fa390bcbbb8d",
         "event": "activated",
         "userId": "5963f460-3684-486d-8f21-cefca0d4b976"
       }
